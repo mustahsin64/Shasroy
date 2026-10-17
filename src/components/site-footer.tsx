@@ -1,42 +1,11 @@
-import Image from "next/image";
 import Link from "next/link";
-
-const footerLinks = [
-  { href: "/#about", label: "সাশ্রয়ের কথা" },
-  { href: "/#categories", label: "পণ্যের বিভাগ" },
-];
+import { Flower2 } from "lucide-react";
 
 export function SiteFooter() {
-  return (
-    <footer className="border-t-4 border-accent bg-brand-deep text-white">
-      <div className="container-shell grid gap-8 py-10 sm:grid-cols-[1fr_auto] sm:items-end">
-        <div>
-          <Link className="relative block h-24 w-52 overflow-hidden rounded-xl bg-[#fffdf5]" href="/">
-            <Image
-              alt="সাশ্রয়"
-              className="object-cover object-[center_56%]"
-              fill
-              sizes="208px"
-              src="/brand/shasroy-logo.png"
-            />
-          </Link>
-          <p className="mt-4 max-w-md text-sm leading-6 text-white/70">
-            খাতা-কলম থেকে ঘরের টুকিটাকি।<br />আপনার পছন্দ, আপনার দামে।
-          </p>
-        </div>
-        <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/70">
-          {footerLinks.map((item) => (
-            <Link className="hover:text-brand-gold" href={item.href} key={item.href}>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </div>
-      <div className="border-t border-white/10">
-        <div className="container-shell py-4 text-xs text-white/55">
-          © {new Date().getFullYear().toLocaleString("bn-BD", { useGrouping: false })} সাশ্রয়। সর্বস্বত্ব সংরক্ষিত।
-        </div>
-      </div>
-    </footer>
-  );
+  return <footer className="store-footer" id="about"><div className="container-shell footer-columns">
+    <div><h2>আমাদের সাশ্রয়</h2><p>স্কুলের খাতা-কলম, জন্মদিনের উপহার কিংবা ঘর সাজানোর ছোট্ট শোপিস। প্রয়োজন আর পছন্দের এই জিনিসগুলো নিয়েই আমাদের দোকান।</p><span className="footer-signature">আপনার পছন্দ, আপনার দামে।</span></div>
+    <div><h2>দোকান ঘুরে দেখুন</h2><Link href="/?category=stationery#products">খাতা-কলম ও স্টেশনারি</Link><Link href="/?category=kids#products">ছোটদের উপহার</Link><Link href="/?category=women#products">নারীদের উপহার</Link><Link href="/?category=home#products">ঘরের প্রয়োজন</Link></div>
+    <div><h2>আরও জানুন</h2><Link href="/#ideas">উপহারের ভাবনা</Link><Link href="/#questions">সাধারণ প্রশ্ন</Link><Link href="/#products">পণ্যের নমুনা</Link><Link href="/#categories">সব বিভাগ</Link></div>
+    <div className="footer-message"><Flower2 size={32} strokeWidth={1} /><h2>উপহার মানে একটু মনে রাখা।</h2><p>দামটা যতই ছোট হোক,<br />যত্নটা যেন বোঝা যায়।</p></div>
+  </div><div className="container-shell footer-bottom"><span>© {new Date().getFullYear().toLocaleString("bn-BD", { useGrouping: false })} সাশ্রয়। সর্বস্বত্ব সংরক্ষিত।</span><span>স্টেশনারি · উপহার · ঘরের জিনিস</span></div></footer>;
 }

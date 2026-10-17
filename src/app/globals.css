@@ -54,7 +54,7 @@ html {
 }
 
 body {
-  font-family: "Noto Sans Bengali", "Bangla Sangam MN", "Nirmala UI", Vrinda, sans-serif;
+  font-family: "Noto Serif Bengali Variable", "Noto Serif Bengali", serif;
 }
 
 .font-serif {
@@ -62,7 +62,7 @@ body {
 }
 
 .container-shell {
-  width: min(100% - 2rem, 75rem);
+  width: min(100% - 3.5rem, 82rem);
   margin-inline: auto;
 }
 
