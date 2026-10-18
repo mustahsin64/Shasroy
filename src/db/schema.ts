@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   check,
@@ -265,3 +265,47 @@ export const inventoryMovements = pgTable(
     check("inventory_movements_change_non_zero", sql`${t.change} <> 0`),
   ],
 ).enableRLS();
+
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  parent: one(categories, { fields: [categories.parentId], references: [categories.id], relationName: "category_parent" }),
+  children: many(categories, { relationName: "category_parent" }),
+  products: many(products),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
+  variants: many(productVariants),
+  images: many(productImages),
+}));
+
+export const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
+  product: one(products, { fields: [productVariants.productId], references: [products.id] }),
+  images: many(productImages),
+  inventoryMovements: many(inventoryMovements),
+}));
+
+export const productImagesRelations = relations(productImages, ({ one }) => ({
+  product: one(products, { fields: [productImages.productId], references: [products.id] }),
+  variant: one(productVariants, { fields: [productImages.variantId], references: [productVariants.id] }),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  deliveryZone: one(deliveryZones, { fields: [orders.deliveryZoneId], references: [deliveryZones.id] }),
+  items: many(orderItems),
+  statusHistory: many(orderStatusHistory),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, { fields: [orderItems.orderId], references: [orders.id] }),
+  variant: one(productVariants, { fields: [orderItems.variantId], references: [productVariants.id] }),
+}));
+
+export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one }) => ({
+  order: one(orders, { fields: [orderStatusHistory.orderId], references: [orders.id] }),
+  changedByAdmin: one(adminUsers, { fields: [orderStatusHistory.changedBy], references: [adminUsers.id] }),
+}));
+
+export const inventoryMovementsRelations = relations(inventoryMovements, ({ one }) => ({
+  variant: one(productVariants, { fields: [inventoryMovements.variantId], references: [productVariants.id] }),
+  order: one(orders, { fields: [inventoryMovements.orderId], references: [orders.id] }),
+}));

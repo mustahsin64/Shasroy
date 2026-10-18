@@ -4,15 +4,21 @@
  * created, so re-running never overwrites real inventory.
  *
  * Sample products are created as "draft" with placeholder prices; they are
- * not visible as real stock and must be replaced by the actual catalogue.
+ * not real stock and must be replaced by the actual catalogue before launch.
  *
  * Usage: npm run db:seed
- * Optional: ADMIN_SEED_EMAIL=you@example.com npm run db:seed (adds an owner record)
+ * Optional environment:
+ *   ADMIN_SEED_EMAIL=you@example.com  adds an owner admin record
+ *   SEED_SAMPLES_ACTIVE=true          development only: publish the samples
+ *   SEED_SAMPLES_ACTIVE=false         hide them again (back to draft)
+ * Sample images are cut from public/images/sample-products.png and uploaded
+ * to Supabase Storage when SUPABASE_SERVICE_ROLE_KEY is set.
  */
 import { loadEnvConfig } from "@next/env";
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import sharp from "sharp";
 import { z } from "zod";
 import * as schema from "../src/db/schema";
 import {
@@ -21,6 +27,7 @@ import {
   deliveryZoneInputSchema,
   productInputSchema,
 } from "../src/lib/validation";
+import { PRODUCT_IMAGE_BUCKET } from "../src/lib/storage";
 
 loadEnvConfig(process.cwd());
 
@@ -67,10 +74,74 @@ const products = z.array(productInputSchema).parse([
   { slug: "colour-pencil-set", nameBn: "রঙ পেন্সিলের সেট", categorySlug: "stationery", descriptionBn: "ছোটদের আঁকিবুঁকির খাতায় রঙ যোগ করতে।", variants: single("SAMPLE-COLOUR-PENCILS", 150, 30) },
 ]);
 
+// Cell of public/images/sample-products.png (4 columns x 2 rows) for each sample.
+const sampleImageCells: Record<string, number> = {
+  "soft-teddy-bear": 0,
+  "notebook-pen-set": 1,
+  "ceramic-vase": 2,
+  "desk-organizer": 3,
+  "leaf-pattern-mug": 4,
+  "flower-earrings": 5,
+  "wooden-mini-house": 6,
+  "colour-pencil-set": 7,
+};
+
+/** Uploads one WebP per sample product and returns slug -> storage path. */
+async function uploadSampleImages(): Promise<Map<string, string>> {
+  const paths = new Map<string, string>();
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!baseUrl || !key) {
+    console.log("Skipping sample images: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set.");
+    return paths;
+  }
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
+
+  const bucket = await fetch(`${baseUrl}/storage/v1/bucket/${PRODUCT_IMAGE_BUCKET}`, { headers });
+  if (!bucket.ok) {
+    const created = await fetch(`${baseUrl}/storage/v1/bucket`, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: PRODUCT_IMAGE_BUCKET,
+        name: PRODUCT_IMAGE_BUCKET,
+        public: true,
+        file_size_limit: 5 * 1024 * 1024,
+        allowed_mime_types: ["image/webp", "image/jpeg", "image/png", "image/avif"],
+      }),
+    });
+    if (!created.ok) throw new Error(`Could not create storage bucket: ${created.status} ${await created.text()}`);
+  }
+
+  const sheet = sharp("public/images/sample-products.png");
+  const { width = 0, height = 0 } = await sheet.metadata();
+  const cellWidth = Math.floor(width / 4);
+  const cellHeight = Math.floor(height / 2);
+  for (const [slug, cell] of Object.entries(sampleImageCells)) {
+    const image = await sharp("public/images/sample-products.png")
+      .extract({ left: (cell % 4) * cellWidth, top: Math.floor(cell / 4) * cellHeight, width: cellWidth, height: cellHeight })
+      .webp({ quality: 82 })
+      .toBuffer();
+    const path = `samples/${slug}.webp`;
+    const uploaded = await fetch(`${baseUrl}/storage/v1/object/${PRODUCT_IMAGE_BUCKET}/${path}`, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "image/webp", "x-upsert": "true", "Cache-Control": "max-age=86400" },
+      body: new Uint8Array(image),
+    });
+    if (!uploaded.ok) throw new Error(`Could not upload ${path}: ${uploaded.status} ${await uploaded.text()}`);
+    paths.set(slug, path);
+  }
+  return paths;
+}
+
 async function main() {
   const url = process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL;
   if (!url) throw new Error("Set DATABASE_URL_DIRECT or DATABASE_URL in .env.local.");
   const adminEmail = process.env.ADMIN_SEED_EMAIL ? adminEmailSchema.parse(process.env.ADMIN_SEED_EMAIL) : undefined;
+  // Unset: leave sample status untouched. "true"/"false": publish or hide the samples.
+  const samplesFlag = process.env.SEED_SAMPLES_ACTIVE;
+  const sampleStatus = samplesFlag === "true" ? "active" : samplesFlag === "false" ? "draft" : undefined;
+  const imagePaths = await uploadSampleImages();
 
   const client = postgres(url, { prepare: false, max: 1 });
   const db = drizzle(client, { schema });
@@ -106,12 +177,28 @@ async function main() {
         if (!categoryId) throw new Error(`Unknown category "${categorySlug}" for ${product.slug}`);
         const [productRow] = await tx
           .insert(schema.products)
-          .values({ ...product, categoryId })
+          .values({ ...product, categoryId, status: sampleStatus ?? product.status })
           .onConflictDoUpdate({
             target: schema.products.slug,
-            set: { nameBn: product.nameBn, descriptionBn: product.descriptionBn ?? null, categoryId },
+            set: {
+              nameBn: product.nameBn,
+              descriptionBn: product.descriptionBn ?? null,
+              categoryId,
+              ...(sampleStatus ? { status: sampleStatus } : {}),
+            },
           })
           .returning({ id: schema.products.id });
+
+        const imagePath = imagePaths.get(product.slug);
+        if (imagePath) {
+          const hasImage = await tx.query.productImages.findFirst({
+            where: eq(schema.productImages.storagePath, imagePath),
+            columns: { id: true },
+          });
+          if (!hasImage) {
+            await tx.insert(schema.productImages).values({ productId: productRow.id, storagePath: imagePath, altBn: product.nameBn });
+          }
+        }
 
         for (const [index, variant] of variants.entries()) {
           const existing = await tx.query.productVariants.findFirst({
@@ -154,10 +241,12 @@ async function main() {
           .onConflictDoNothing({ target: schema.adminUsers.email });
       }
 
-      const [counts] = await tx.execute<{ categories: number; products: number; variants: number; zones: number; admins: number }>(sql`
+      const [counts] = await tx.execute<{ categories: number; products: number; active: number; images: number; variants: number; zones: number; admins: number }>(sql`
         select
           (select count(*) from categories)::int as categories,
           (select count(*) from products)::int as products,
+          (select count(*) from products where status = 'active')::int as active,
+          (select count(*) from product_images)::int as images,
           (select count(*) from product_variants)::int as variants,
           (select count(*) from delivery_zones)::int as zones,
           (select count(*) from admin_users)::int as admins

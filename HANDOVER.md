@@ -157,7 +157,13 @@ Environment issues previously encountered:
    - RLS is enabled on every table with no policies, so the Supabase Data API returns nothing; the app reads and writes only from the server via `DATABASE_URL`.
    - Seeded sample products are `draft` with placeholder prices and `SAMPLE-` SKUs. Delivery fees (৳60 / ৳100 / ৳120) are placeholders. Order numbers default to `SH-<sequence>` starting at 1001.
    - No admin record yet; set `ADMIN_SEED_EMAIL` and re-run the seed.
-3. **Product storefront — next.** Replace sample data with database-backed homepage/listing/detail pages, galleries, variants, pricing, stock, search/filter/sort.
+3. **Product storefront — complete except sample images (18 October 2026).**
+   - Data access layer: `src/lib/catalog.ts` (server-only); formatting: `src/lib/format.ts`; image URLs: `src/lib/storage.ts` (Supabase Storage bucket `product-images`).
+   - Homepage reads categories/products from the database with server-side search, category filter and sort (`?sort=newest|price-asc|price-desc`).
+   - Product page `/products/[slug]` with gallery, variant choice via `?variant=SKU`, price, stock status; add-to-bag button is disabled until Phase 4.
+   - Samples are published only in development via `SEED_SAMPLES_ACTIVE=true`. The seed uploads one WebP per sample to Storage when `SUPABASE_SERVICE_ROLE_KEY` is set; until then cards show a placeholder icon.
+   - Promo banners and occasion tiles still use the static contact sheet.
+   Original scope: Replace sample data with database-backed homepage/listing/detail pages, galleries, variants, pricing, stock, search/filter/sort.
 4. **Shopping cart.** Add/update/remove variants, persistent cart, server-validated price and stock.
 5. **COD checkout.** Guest name/phone/address, delivery fees, transactional order creation, unique order number, confirmation.
 6. **Admin dashboard.** Secure login, categories/products/images/variants/stock/prices, order management.
