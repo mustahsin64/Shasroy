@@ -12,7 +12,7 @@ export const MAX_QUANTITY_PER_LINE = 10;
 
 const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
-async function findCartId(): Promise<string | null> {
+export async function findCartId(): Promise<string | null> {
   const token = (await cookies()).get(CART_COOKIE)?.value;
   if (!token || token.length > 100) return null;
   const cart = await db.query.carts.findFirst({ where: eq(carts.tokenHash, hashToken(token)), columns: { id: true } });
@@ -173,4 +173,9 @@ export async function removeCartItem(itemId: string) {
 
 async function touchCart(cartId: string) {
   await db.update(carts).set({ updatedAt: new Date() }).where(eq(carts.id, cartId));
+}
+
+/** Only callable from Server Actions: drops the cart cookie after checkout. */
+export async function forgetCartCookie() {
+  (await cookies()).delete(CART_COOKIE);
 }

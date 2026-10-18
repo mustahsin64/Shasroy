@@ -170,7 +170,13 @@ Environment issues previously encountered:
    - Cookie `shasroy_cart`: httpOnly, SameSite=Lax, Secure in production, 30 days, renewed on activity.
    - Prices are never stored in the cart; lines always show live price and stock. Quantity is capped at stock and 10 per line. Unavailable or over-stock lines are flagged and excluded from the subtotal.
    - Not yet: cleanup of abandoned carts (Phase 8). Checkout button is disabled until Phase 5.
-5. **COD checkout.** Guest name/phone/address, delivery fees, transactional order creation, unique order number, confirmation.
+5. **COD checkout — complete (18 October 2026).** Guest name/phone/address, delivery fees, transactional order creation, unique order number, confirmation.
+   - Logic: `src/lib/checkout.ts` (`placeOrder`, `listDeliveryZones`, `getOrderConfirmation`); Server Action `src/app/checkout/actions.ts`; pages `/checkout` and `/order/[id]`; form `src/components/checkout-form.tsx`.
+   - `placeOrder` runs in one transaction: locks the cart row (stops double submits), locks variant rows in id order, re-checks active/stock, inserts order + item snapshots, decrements stock, writes `inventory_movements` (reason `order`) and `order_status_history` (null to `pending`), deletes the cart. Any failure rolls back.
+   - Phone accepts 01…, +880… and Bangla digits; stored as `01XXXXXXXXX`. Totals and fees are computed on the server only.
+   - Confirmation URL uses the order UUID (unguessable); the page masks the phone number. Order numbers are `SH-<sequence>`.
+   - Tested: validation errors, successful order (stock 5 to 1, history, cart cleared), sold-out-before-submit rejection. Test orders were deleted and stock restored.
+   - Not yet: SMS/email notification, rate limiting (Phase 8), order lookup by customer.
 6. **Admin dashboard.** Secure login, categories/products/images/variants/stock/prices, order management.
 7. **Store operations.** Status history, stock restoration on cancellation, staff notes, printable order view, delivery settings, contact links once actual contact details are supplied.
 8. **Production readiness.** SEO/sitemap/structured data, performance, security/rate limiting, logging, analytics, meaningful checkout/inventory tests, Vercel deployment and backup verification.

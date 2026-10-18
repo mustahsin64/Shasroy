@@ -12,12 +12,20 @@ export const slugSchema = z
 export const paisaSchema = z.number().int().nonnegative().max(100_000_000);
 export const positivePaisaSchema = paisaSchema.positive();
 
-/** Accepts 01XXXXXXXXX, +8801XXXXXXXXX or 8801XXXXXXXXX and normalises to 01XXXXXXXXX. */
+/** Accepts 01XXXXXXXXX, +8801XXXXXXXXX or 8801XXXXXXXXX (Bangla or Latin digits) and normalises to 01XXXXXXXXX. */
+export function normalizeBdPhone(value: string) {
+  return value
+    .trim()
+    .replace(/[০-৯]/g, (d) => String("০১২৩৪৫৬৭৮৯".indexOf(d)))
+    .replace(/[\s-]/g, "")
+    .replace(/^\+?880/, "0");
+}
+export const BD_MOBILE_PATTERN = /^01[3-9]\d{8}$/;
+
 export const bdPhoneSchema = z
   .string()
-  .trim()
-  .transform((value) => value.replace(/[\s-]/g, "").replace(/^\+?880/, "0"))
-  .pipe(z.string().regex(/^01[3-9]\d{8}$/, "Enter a valid Bangladeshi mobile number."));
+  .transform(normalizeBdPhone)
+  .pipe(z.string().regex(BD_MOBILE_PATTERN, "Enter a valid Bangladeshi mobile number."));
 
 export const variantOptionsSchema = z.record(z.string().min(1).max(40), z.string().min(1).max(80));
 

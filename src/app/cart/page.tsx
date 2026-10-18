@@ -62,7 +62,7 @@ export default async function CartPage() {
           </dl>
           <p className="summary-note">দাম ও স্টক অর্ডার করার সময় আবার যাচাই করা হবে।</p>
           {cart.hasIssues && <p className="line-issue">কিছু পণ্যে সমস্যা আছে; ঠিক করে নিন।</p>}
-          <button type="button" disabled>অর্ডার করুন (শিগগিরই)</button>
+          {cart.hasIssues ? <button type="button" disabled>অর্ডার করুন</button> : <Link href="/checkout" className="checkout-link">অর্ডার করুন</Link>}
           <Link href="/#products" className="continue-link">আরও কেনাকাটা করুন</Link>
         </aside>
       </div>}

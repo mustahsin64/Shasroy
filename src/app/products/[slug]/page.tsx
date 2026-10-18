@@ -56,7 +56,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
         {product.descriptionBn && <div className="product-description"><h2>বিস্তারিত</h2><p>{product.descriptionBn}</p></div>}
 
         <AddToCartForm key={variant.id} variantId={variant.id} maxQuantity={Math.min(variant.stockQuantity, MAX_QUANTITY_PER_LINE)} />
-        <p className="purchase-hint">নমুনা পণ্য · অর্ডার করার সুবিধা (ক্যাশ অন ডেলিভারি) শিগগিরই চালু হবে।</p>
+        <p className="purchase-hint">ক্যাশ অন ডেলিভারি · পণ্য হাতে পেয়ে টাকা দিন।</p>
         <p className="sku-line">কোড: {variant.sku}</p>
       </div>
     </div>
