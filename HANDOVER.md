@@ -177,7 +177,14 @@ Environment issues previously encountered:
    - Confirmation URL uses the order UUID (unguessable); the page masks the phone number. Order numbers are `SH-<sequence>`.
    - Tested: validation errors, successful order (stock 5 to 1, history, cart cleared), sold-out-before-submit rejection. Test orders were deleted and stock restored.
    - Not yet: SMS/email notification, rate limiting (Phase 8), order lookup by customer.
-6. **Admin dashboard.** Secure login, categories/products/images/variants/stock/prices, order management.
+6. **Admin dashboard — complete (18 October 2026).** Secure login, categories/products/images/variants/stock/prices, order management.
+   - Routes: storefront moved to `src/app/(shop)/` (own layout with header/footer); admin at `src/app/admin/` with `login/` outside the protected `(panel)/` group; magic-link landing `src/app/auth/callback/route.ts`; session refresh in `src/proxy.ts` (Next 16 name for middleware).
+   - Auth: Supabase Auth magic link (no passwords). `src/lib/admin-auth.ts` verifies JWT claims, then requires an active `admin_users` row (linked by email on first sign-in). Roles: staff = orders; manager = + products/categories; owner = all. Every page uses `requireAdmin`, every Server Action `assertAdmin`.
+   - Supabase setting required: Authentication > URL Configuration > Redirect URLs must include `http://localhost:3000/**` (done) and later the production domain.
+   - Orders (`src/lib/admin/orders.ts`): list/filter/paginate, detail, status flow pending > confirmed > processing > shipped > delivered, cancel from any open state restores stock (inventory `cancellation`), delivered marks COD paid, history with admin and note.
+   - Catalog (`src/lib/admin/products.ts`, `src/lib/admin/categories.ts`): create/edit products, variants (one default enforced), stock set with movement log, images resized to max 1200px WebP via sharp and stored in Supabase Storage (4 MB upload limit because Vercel caps bodies at 4.5 MB), primary image, delete. Ordered variants and non-empty categories cannot be deleted.
+   - Tested: login as owner in Chrome; 25 scripted checks against the real DB/storage (create, duplicates, variants, stock, images, order lifecycle, stock restore), all test data removed.
+   - Not yet: managing admin users from the UI (use seed/SQL), staff notes, printable order (Phase 7).
 7. **Store operations.** Status history, stock restoration on cancellation, staff notes, printable order view, delivery settings, contact links once actual contact details are supplied.
 8. **Production readiness.** SEO/sitemap/structured data, performance, security/rate limiting, logging, analytics, meaningful checkout/inventory tests, Vercel deployment and backup verification.
 

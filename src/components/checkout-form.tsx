@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { placeOrderAction, type CheckoutState } from "@/app/checkout/actions";
+import { placeOrderAction, type CheckoutState } from "@/app/(shop)/checkout/actions";
 import { formatNumberBn, formatTaka } from "@/lib/format";
 
 type Zone = { id: string; nameBn: string; feePaisa: number; minDays: number; maxDays: number };

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { addToCartAction, type AddToCartState } from "@/app/cart/actions";
+import { addToCartAction, type AddToCartState } from "@/app/(shop)/cart/actions";
 
 const initialState: AddToCartState = { status: "idle", message: "" };
 

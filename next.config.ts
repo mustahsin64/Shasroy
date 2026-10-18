@@ -4,6 +4,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.N
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // Admin photo uploads (validated to 4 MB in src/lib/admin/products.ts; Vercel caps request bodies at 4.5 MB).
+    serverActions: { bodySizeLimit: "4.4mb" },
+  },
   images: {
     remotePatterns: supabaseUrl
       ? [

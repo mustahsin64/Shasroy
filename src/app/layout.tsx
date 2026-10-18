@@ -1,8 +1,5 @@
 import type { Metadata, Viewport } from "next";
 
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-
 import "./globals.css";
 import "./storefront.css";
 import "@fontsource-variable/noto-serif-bengali";
@@ -24,11 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="bn">
       <body className="min-h-screen bg-background text-foreground antialiased">
-        <div className="flex min-h-screen flex-col">
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
-        </div>
+        {children}
       </body>
     </html>
   );
