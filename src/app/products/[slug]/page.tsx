@@ -2,7 +2,9 @@ import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AddToCartForm } from "@/components/add-to-cart-form";
 import { ProductGallery } from "@/components/product-gallery";
+import { MAX_QUANTITY_PER_LINE } from "@/lib/cart";
 import { getProductBySlug } from "@/lib/catalog";
 import { formatTaka, stockLabel } from "@/lib/format";
 
@@ -53,10 +55,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
         {product.descriptionBn && <div className="product-description"><h2>বিস্তারিত</h2><p>{product.descriptionBn}</p></div>}
 
-        <div className="purchase-note">
-          <button type="button" disabled>ব্যাগে যোগ করুন</button>
-          <p>নমুনা পণ্য · অর্ডারের সুবিধা শিগগিরই চালু হবে।</p>
-        </div>
+        <AddToCartForm key={variant.id} variantId={variant.id} maxQuantity={Math.min(variant.stockQuantity, MAX_QUANTITY_PER_LINE)} />
+        <p className="purchase-hint">নমুনা পণ্য · অর্ডার করার সুবিধা (ক্যাশ অন ডেলিভারি) শিগগিরই চালু হবে।</p>
         <p className="sku-line">কোড: {variant.sku}</p>
       </div>
     </div>

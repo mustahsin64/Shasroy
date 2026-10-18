@@ -164,7 +164,12 @@ Environment issues previously encountered:
    - Samples are published only in development via `SEED_SAMPLES_ACTIVE=true`. The seed uploads one WebP per sample to Storage when `SUPABASE_SERVICE_ROLE_KEY` is set; until then cards show a placeholder icon.
    - Promo banners and occasion tiles still use the static contact sheet.
    Original scope: Replace sample data with database-backed homepage/listing/detail pages, galleries, variants, pricing, stock, search/filter/sort.
-4. **Shopping cart.** Add/update/remove variants, persistent cart, server-validated price and stock.
+4. **Shopping cart — complete (18 October 2026).** Add/update/remove variants, persistent cart, server-validated price and stock.
+   - Tables `carts` (only the SHA-256 hash of the cookie token is stored) and `cart_items` (unique per cart + variant, quantity 1–99); migration `drizzle/0001_carts.sql`.
+   - Logic: `src/lib/cart.ts`; Server Actions: `src/app/cart/actions.ts`; page `/cart`; add-to-bag form on the product page; header bag link shows the item count.
+   - Cookie `shasroy_cart`: httpOnly, SameSite=Lax, Secure in production, 30 days, renewed on activity.
+   - Prices are never stored in the cart; lines always show live price and stock. Quantity is capped at stock and 10 per line. Unavailable or over-stock lines are flagged and excluded from the subtotal.
+   - Not yet: cleanup of abandoned carts (Phase 8). Checkout button is disabled until Phase 5.
 5. **COD checkout.** Guest name/phone/address, delivery fees, transactional order creation, unique order number, confirmation.
 6. **Admin dashboard.** Secure login, categories/products/images/variants/stock/prices, order management.
 7. **Store operations.** Status history, stock restoration on cancellation, staff notes, printable order view, delivery settings, contact links once actual contact details are supplied.

@@ -266,6 +266,37 @@ export const inventoryMovements = pgTable(
   ],
 ).enableRLS();
 
+// Guest carts. The browser keeps a random token in an httpOnly cookie; only its
+// SHA-256 hash is stored, so a database leak cannot be used to hijack carts.
+export const carts = pgTable(
+  "carts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    tokenHash: text("token_hash").notNull().unique(),
+    ...timestamps,
+  },
+  (t) => [index("carts_updated_idx").on(t.updatedAt)],
+).enableRLS();
+
+export const cartItems = pgTable(
+  "cart_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    cartId: uuid("cart_id")
+      .notNull()
+      .references(() => carts.id, { onDelete: "cascade" }),
+    variantId: uuid("variant_id")
+      .notNull()
+      .references(() => productVariants.id, { onDelete: "cascade" }),
+    quantity: integer("quantity").notNull(),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("cart_items_cart_variant_idx").on(t.cartId, t.variantId),
+    check("cart_items_quantity_range", sql`${t.quantity} between 1 and 99`),
+  ],
+).enableRLS();
+
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
   parent: one(categories, { fields: [categories.parentId], references: [categories.id], relationName: "category_parent" }),
   children: many(categories, { relationName: "category_parent" }),
@@ -308,4 +339,13 @@ export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one 
 export const inventoryMovementsRelations = relations(inventoryMovements, ({ one }) => ({
   variant: one(productVariants, { fields: [inventoryMovements.variantId], references: [productVariants.id] }),
   order: one(orders, { fields: [inventoryMovements.orderId], references: [orders.id] }),
+}));
+
+export const cartsRelations = relations(carts, ({ many }) => ({
+  items: many(cartItems),
+}));
+
+export const cartItemsRelations = relations(cartItems, ({ one }) => ({
+  cart: one(carts, { fields: [cartItems.cartId], references: [carts.id] }),
+  variant: one(productVariants, { fields: [cartItems.variantId], references: [productVariants.id] }),
 }));
