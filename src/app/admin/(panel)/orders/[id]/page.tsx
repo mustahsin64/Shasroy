@@ -3,19 +3,21 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/admin-auth";
+import { listOrderNotes } from "@/lib/admin/order-notes";
 import { getOrderForAdmin, orderStatusLabels, orderTransitions } from "@/lib/admin/orders";
 import { formatDateTimeBn, formatNumberBn, formatTaka } from "@/lib/format";
 import { StatusForm } from "../status-form";
+import { NotesForm } from "./notes-form";
 
 export const metadata: Metadata = { title: "অর্ডারের বিস্তারিত" };
 
 const paymentLabels = { unpaid: "বাকি", paid: "পরিশোধিত", refunded: "ফেরত", failed: "ব্যর্থ" } as const;
 
-export default async function AdminOrderPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AdminOrderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ notes?: string }> }) {
   await requireAdmin("staff");
-  const { id } = await params;
+  const [{ id }, { notes: showNotes }] = await Promise.all([params, searchParams]);
   if (!z.uuid().safeParse(id).success) notFound();
-  const order = await getOrderForAdmin(id);
+  const [order, notes] = await Promise.all([getOrderForAdmin(id), listOrderNotes(id, showNotes === "all")]);
   if (!order) notFound();
   const next = orderTransitions[order.status];
 
@@ -24,6 +26,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
     <div className="admin-heading">
       <h1>{order.orderNumber}</h1>
       <span className={`status-pill status-${order.status}`}>{orderStatusLabels[order.status]}</span>
+      <Link href={`/admin/orders/${order.id}/print`} className="admin-link" target="_blank">প্রিন্ট স্লিপ ↗</Link>
     </div>
     <p className="admin-muted">{formatDateTimeBn(order.createdAt)} · ক্যাশ অন ডেলিভারি · পেমেন্ট: {paymentLabels[order.paymentStatus]}</p>
 
@@ -61,6 +64,16 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
           <h2>অবস্থা বদলান</h2>
           {next.length === 0 ? <p className="admin-muted">এই অর্ডারে আর কোনো ধাপ নেই।</p> :
             <StatusForm orderId={order.id} options={next.map(s => ({ value: s, label: s === "cancelled" ? "বাতিল করুন" : `${orderStatusLabels[s]} করুন`, danger: s === "cancelled" }))} />}
+        </section>
+
+        <section className="admin-card">
+          <h2>অভ্যন্তরীণ নোট</h2>
+          <NotesForm orderId={order.id} />
+          {notes.rows.length === 0 ? <p className="admin-muted">এখনো কোনো নোট নেই।</p> : <ol className="admin-history admin-notes">{notes.rows.map(n => <li key={n.id}>
+            <small>{formatDateTimeBn(n.createdAt)} · {n.author.displayName ?? n.author.email}</small>
+            <span className="note-body">{n.body}</span>
+          </li>)}</ol>}
+          {notes.truncated && <p><Link href={`/admin/orders/${order.id}?notes=all`} scroll={false}>সব {formatNumberBn(notes.total)}টি নোট দেখুন</Link></p>}
         </section>
 
         <section className="admin-card">

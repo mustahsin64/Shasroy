@@ -118,3 +118,7 @@
   .admin-main { padding: 16px 12px 40px; }
   .admin-top { padding: 12px 16px; }
 }
+
+.notes-form textarea { width: 100%; padding: 8px 10px; border: 1px solid #cfd5c6; border-radius: 6px; font-size: 14px; }
+.admin-notes { margin-top: 12px; }
+.admin-notes .note-body { white-space: pre-wrap; overflow-wrap: anywhere; color: #22301f; }

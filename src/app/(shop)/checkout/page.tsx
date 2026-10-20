@@ -10,7 +10,8 @@ export const metadata: Metadata = { title: "অর্ডার করুন", ro
 
 export default async function CheckoutPage() {
   const [cart, zones] = await Promise.all([getCart(), listDeliveryZones()]);
-  const blocked = cart.lines.length === 0 || cart.hasIssues;
+  const noZones = zones.length === 0;
+  const blocked = cart.lines.length === 0 || cart.hasIssues || noZones;
 
   return <div className="shop-background"><div className="container-shell">
     <div className="cart-page">
@@ -20,6 +21,8 @@ export default async function CheckoutPage() {
         <ShoppingBag size={48} strokeWidth={1} />
         {cart.lines.length === 0
           ? <><p>আপনার ব্যাগ খালি।</p><Link href="/#products">পণ্য দেখুন</Link></>
+          : noZones
+          ? <><p>এই মুহূর্তে অর্ডার নেওয়া বন্ধ আছে (ডেলিভারি এলাকা চালু নেই)। একটু পরে আবার চেষ্টা করুন।</p><Link href="/cart">ব্যাগে ফিরে যান</Link></>
           : <><p>ব্যাগের কিছু পণ্যে সমস্যা আছে। আগে ঠিক করে নিন।</p><Link href="/cart">ব্যাগে ফিরে যান</Link></>}
       </div> : <>
         <details className="checkout-items" open>

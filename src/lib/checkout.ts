@@ -21,13 +21,15 @@ export const checkoutSchema = z.object({
   deliveryZoneId: z.uuid("ডেলিভারির এলাকা বেছে নিন।"),
   shippingAddress: z.string().trim().min(10, "পুরো ঠিকানা লিখুন (বাসা, রাস্তা, এলাকা, জেলা)।").max(500, "ঠিকানা ৫০০ অক্ষরের মধ্যে রাখুন।"),
   customerNote: z.string().trim().max(500, "নোট ৫০০ অক্ষরের মধ্যে রাখুন।").transform(v => v || null),
+  // The delivery fee the customer saw when confirming; the server refuses if it changed since.
+  expectedFeePaisa: z.coerce.number().int().min(0),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
 export type PlaceOrderResult =
   | { ok: true; orderId: string; orderNumber: string }
-  | { ok: false; error: "empty-cart" | "zone-unavailable" | "cart-changed" };
+  | { ok: false; error: "empty-cart" | "zone-unavailable" | "cart-changed" | "fee-changed" };
 
 /**
  * Creates a cash-on-delivery order from the cart in one transaction:
@@ -47,8 +49,12 @@ export async function placeOrder(cartId: string, input: CheckoutInput): Promise<
     const [zone] = await tx
       .select({ id: deliveryZones.id, nameBn: deliveryZones.nameBn, feePaisa: deliveryZones.feePaisa })
       .from(deliveryZones)
-      .where(and(eq(deliveryZones.id, input.deliveryZoneId), eq(deliveryZones.isActive, true)));
+      .where(and(eq(deliveryZones.id, input.deliveryZoneId), eq(deliveryZones.isActive, true)))
+      // Shared lock: an admin editing this zone waits for this order to commit (or this
+      // order sees the committed edit), so the fee checked below is the fee charged.
+      .for("share");
     if (!zone) return { ok: false, error: "zone-unavailable" } as const;
+    if (zone.feePaisa !== input.expectedFeePaisa) return { ok: false, error: "fee-changed" } as const;
 
     // Lock variants in a stable order to avoid deadlocks between concurrent orders.
     const variantIds = items.map(item => item.variantId).sort();

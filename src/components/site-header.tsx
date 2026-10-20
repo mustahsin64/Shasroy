@@ -1,6 +1,7 @@
 import { Gift, Menu, Search, ShoppingBag, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { ContactLinks } from "@/components/contact-links";
 import { getCartCount } from "@/lib/cart";
 import { formatNumberBn } from "@/lib/format";
 
@@ -9,7 +10,7 @@ const links = [{ href: "/", label: "শুরুর পাতা" }, { href: "/#
 export async function SiteHeader() {
   const cartCount = await getCartCount();
   return <header className="store-header">
-    <div className="utility-bar"><div className="container-shell utility-inner"><span>ছোট ছোট আনন্দ, সাধ্যের মধ্যে</span><div><span>বাংলা</span><Link href="/#about">সাশ্রয়ের কথা</Link><Link href="/#questions">সাধারণ প্রশ্ন</Link></div></div></div>
+    <div className="utility-bar"><div className="container-shell utility-inner"><span>ছোট ছোট আনন্দ, সাধ্যের মধ্যে</span><div><ContactLinks variant="inline" /><span>বাংলা</span><Link href="/#about">সাশ্রয়ের কথা</Link><Link href="/#questions">সাধারণ প্রশ্ন</Link></div></div></div>
     <div className="container-shell masthead">
       <Link href="/" aria-label="সাশ্রয় — শুরুর পাতা" className="store-logo"><Image src="/brand/shasroy-logo.png" alt="সাশ্রয়" fill sizes="180px" preload className="object-cover object-[center_52%] mix-blend-multiply" /></Link>
       <div className="header-note"><Gift strokeWidth={1.3} /><div><span>যাঁকে দিতে চান</span><strong>তাঁর পছন্দের উপহার</strong></div></div>

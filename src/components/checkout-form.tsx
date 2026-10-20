@@ -52,6 +52,7 @@ export function CheckoutForm({ zones, subtotalPaisa }: { zones: Zone[]; subtotal
         <div><dt>ডেলিভারি চার্জ</dt><dd className={zone ? undefined : "muted"}>{zone ? formatTaka(zone.feePaisa) : "এলাকা বেছে নিন"}</dd></div>
         <div className="summary-total"><dt>মোট</dt><dd>{formatTaka(subtotalPaisa + (zone?.feePaisa ?? 0))}</dd></div>
       </dl>
+      <input type="hidden" name="expectedFeePaisa" value={zone?.feePaisa ?? ""} />
       <button type="submit" className="checkout-submit" disabled={pending}>{pending ? "অর্ডার হচ্ছে…" : "অর্ডার নিশ্চিত করুন"}</button>
       <p className="summary-note">অর্ডার নিশ্চিত করার সময় দাম ও স্টক আবার যাচাই করা হবে।</p>
     </aside>

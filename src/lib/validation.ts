@@ -64,15 +64,19 @@ export const productInputSchema = z.object({
     .refine((vs) => vs.filter((v) => v.isDefault).length === 1, "Exactly one variant must be the default."),
 });
 
-export const deliveryZoneInputSchema = z
-  .object({
-    slug: slugSchema,
-    nameBn: z.string().trim().min(1).max(120),
-    feePaisa: paisaSchema,
-    minDays: z.number().int().nonnegative(),
-    maxDays: z.number().int().nonnegative(),
-    sortOrder: z.number().int().default(0),
-  })
-  .refine((zone) => zone.maxDays >= zone.minDays, { message: "maxDays must be at least minDays.", path: ["maxDays"] });
+export const deliveryZoneFields = z.object({
+  slug: slugSchema,
+  nameBn: z.string().trim().min(1, "নাম লিখুন।").max(120),
+  feePaisa: paisaSchema,
+  minDays: z.number().int().min(0).max(60),
+  maxDays: z.number().int().min(0).max(60),
+  sortOrder: z.number().int().min(0).max(10000).default(0),
+  isActive: z.boolean().default(true),
+});
 
-export const adminEmailSchema = z.email().transform((value) => value.trim().toLowerCase());
+const daysRange = { message: "সর্বোচ্চ দিন সর্বনিম্ন দিনের কম হতে পারে না।", path: ["maxDays"] };
+export const deliveryZoneInputSchema = deliveryZoneFields.refine((zone) => zone.maxDays >= zone.minDays, daysRange);
+/** Slugs stay stable after creation, so updates never accept one. */
+export const deliveryZoneUpdateSchema = deliveryZoneFields.omit({ slug: true }).refine((zone) => zone.maxDays >= zone.minDays, daysRange);
+
+export const adminEmailSchema = z.string().trim().toLowerCase().pipe(z.email().max(254));

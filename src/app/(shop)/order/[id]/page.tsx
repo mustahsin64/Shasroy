@@ -2,8 +2,10 @@ import { CircleCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ContactLinks } from "@/components/contact-links";
 import { getOrderConfirmation } from "@/lib/checkout";
 import { formatNumberBn, formatTaka } from "@/lib/format";
+import { shopContact } from "@/lib/shop-contact";
 
 export const metadata: Metadata = { title: "অর্ডার নিশ্চিত হয়েছে", robots: { index: false } };
 
@@ -42,6 +44,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
           <p className="summary-note">পেমেন্ট: ক্যাশ অন ডেলিভারি। অর্ডার নম্বরটি সংরক্ষণ করে রাখুন।</p>
         </section>
       </div>
+      {shopContact.hasAny && <section className="confirm-contact"><h2>কোনো প্রশ্ন থাকলে</h2><p>অর্ডার নম্বর <strong>{order.orderNumber}</strong> জানিয়ে যোগাযোগ করুন।</p><ContactLinks /></section>}
       <Link href="/#products" className="continue-link">আরও কেনাকাটা করুন</Link>
     </div>
   </div></div>;

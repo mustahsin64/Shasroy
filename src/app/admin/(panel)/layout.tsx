@@ -12,6 +12,8 @@ export default async function AdminPanelLayout({ children }: Readonly<{ children
         <Link href="/admin/orders">অর্ডার</Link>
         {canManageCatalog && <Link href="/admin/products">পণ্য</Link>}
         {canManageCatalog && <Link href="/admin/categories">বিভাগ</Link>}
+        {canManageCatalog && <Link href="/admin/delivery">ডেলিভারি</Link>}
+        {hasRole(admin, "owner") && <Link href="/admin/users">ব্যবহারকারী</Link>}
         <Link href="/" target="_blank">দোকান দেখুন ↗</Link>
       </nav>
       <form action={signOutAction} className="admin-user">

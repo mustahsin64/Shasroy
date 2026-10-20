@@ -2,6 +2,7 @@ import "server-only";
 import { count, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "@/db";
+import { isUniqueViolation } from "@/lib/db-errors";
 import { slugSchema } from "@/lib/validation";
 
 const { categories, products } = schema;
@@ -18,12 +19,7 @@ export const categoryFieldsSchema = z.object({
 });
 export type CategoryFields = z.infer<typeof categoryFieldsSchema>;
 
-function isSlugTaken(error: unknown) {
-  for (let e = error as { code?: string; constraint_name?: string; cause?: unknown } | undefined, d = 0; e && d < 5; e = e.cause as typeof e, d++) {
-    if (e.code === "23505" && e.constraint_name === "categories_slug_unique") return true;
-  }
-  return false;
-}
+const isSlugTaken = (error: unknown) => isUniqueViolation(error, "categories_slug_unique");
 
 export async function saveCategory(id: string | null, fields: CategoryFields): Promise<{ ok: true } | { ok: false; error: string }> {
   try {

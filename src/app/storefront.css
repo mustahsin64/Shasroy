@@ -241,3 +241,14 @@ a:hover { color: #94701e; }
 .confirm-totals dd { font-weight: 700; }
 .confirm-address { white-space: pre-line; font-size: 14px; line-height: 1.9; background: #f7f7f2; padding: 12px 14px; border-radius: 6px; }
 @media(max-width:900px) { .checkout-form, .confirm-grid { grid-template-columns: 1fr; } }
+
+/* Contact links */
+.contact-links { display: flex; flex-direction: column; gap: 10px; }
+.contact-links a { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; }
+.contact-inline { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.contact-address { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: #69775c; line-height: 1.8; }
+.footer-columns .contact-links a { margin-bottom: 0; }
+.confirm-contact { margin: 24px auto 4px; max-width: 480px; text-align: left; background: #f7f7f2; border-radius: 8px; padding: 14px 18px; }
+.confirm-contact h2 { font-size: 15px; font-weight: 650; }
+.confirm-contact p { font-size: 13px; color: #59634f; margin: 4px 0 10px; }
+.questions .contact-links { margin-top: 10px; }

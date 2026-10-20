@@ -1,9 +1,11 @@
 import { ArrowRight, Gift, HeartHandshake, Leaf, PencilRuler, Shapes, Flower2, House, ChevronRight, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { ContactLinks } from "@/components/contact-links";
 import { ProductCard } from "@/components/product-card";
 import { listCategories, listProducts, parseSort, type ProductSort } from "@/lib/catalog";
 import { formatNumberBn } from "@/lib/format";
+import { shopContact } from "@/lib/shop-contact";
 
 const categoryIcons: Record<string, LucideIcon> = { stationery: PencilRuler, kids: Shapes, women: Flower2, home: House, decor: Leaf, gifts: Gift };
 const sortOptions: { value: ProductSort; label: string }[] = [
@@ -47,7 +49,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ q
       <section className="product-section" id="products"><div className="section-title"><span>✧</span><h2>{selected?.title || "আমাদের পছন্দের কিছু"}</h2><div className="dotted-rule" /></div><p className="sample-note">নমুনা সংগ্রহ · ছবি ও দাম ধারণামূলক; আসল পণ্য ও দাম শিগগিরই যোগ হবে।</p><nav className="sort-links" aria-label="সাজানোর ধরন">{sortOptions.map(option => <Link key={option.value} aria-current={sort === option.value ? "true" : undefined} href={shopHref({ q: query, category: selected?.id, sort: option.value })}>{option.label}</Link>)}</nav>{query && <p className="search-result">“{query}” খুঁজে পাওয়া গেছে {formatNumberBn(shown.length)}টি পণ্য। <Link href="/#products">সব দেখুন</Link></p>}<div className="product-grid">{shown.map(product => <ProductCard key={product.id} product={product} />)}</div>{shown.length === 0 && <div className="empty-results">{query ? "এই নামে কোনো পণ্য নেই।" : "এই বিভাগে এখনো কোনো পণ্য নেই।"} <Link href="/#products">সব পণ্য দেখুন</Link></div>}</section>
       <div className="promo-pair lower-promos"><Link className="promo promo-cream" href="/?category=kids#products"><div><p>ছোটদের বড় আনন্দ</p><h2>ওদের জন্য<br />আলাদা কিছু</h2><span className="text-link">দেখে নিন <ArrowRight size={14} /></span></div><ProductArt cell={0} label="নরম টেডি বিয়ার" /></Link><Link className="promo promo-sage" href="/?category=decor#products"><div><p>ঘরের এক কোণে</p><h2>একটু যত্নের<br />ছোঁয়া</h2><span className="text-link">ঘর সাজান <ArrowRight size={14} /></span></div><ProductArt cell={2} label="সিরামিক ফুলদানি" /></Link></div>
       <section className="occasion-section"><div className="section-title"><h2>কার জন্য খুঁজছেন?</h2><div className="dotted-rule" /></div><div className="occasion-grid">{[{ cell: 1, title: "পড়ুয়াদের জন্য", category: "stationery" }, { cell: 0, title: "ছোটদের জন্য", category: "kids" }, { cell: 4, title: "প্রিয়জনের জন্য", category: "gifts" }, { cell: 5, title: "নিজের জন্য", category: "women" }].map(item => <Link href={`/?category=${item.category}#products`} key={item.title}><ProductArt cell={item.cell} label={item.title} /><h3>{item.title}</h3><span>সংগ্রহ দেখুন</span></Link>)}</div></section>
-      <section id="questions" className="questions"><h2>কেনাকাটার আগে</h2><details><summary>এখন কি অর্ডার করা যাবে?</summary><p>দোকান সাজানোর কাজ চলছে। পণ্যের আসল ছবি, দাম ও অর্ডারের সুবিধা যোগ হলে এখানেই পাবেন।</p></details><details><summary>কী কী পাওয়া যাবে?</summary><p>স্টেশনারি, ছোটদের ও নারীদের উপহার, প্লাস্টিকের প্রয়োজনীয় জিনিস এবং ঘর সাজানোর শোপিস।</p></details></section>
+      <section id="questions" className="questions"><h2>কেনাকাটার আগে</h2><details><summary>এখন কি অর্ডার করা যাবে?</summary><p>ক্যাশ অন ডেলিভারিতে অর্ডার নেওয়ার ব্যবস্থা তৈরি আছে: পণ্য হাতে পেয়ে টাকা দিন। পণ্যের আসল ছবি ও দাম যোগ করার কাজ চলছে।</p></details><details><summary>কী কী পাওয়া যাবে?</summary><p>স্টেশনারি, ছোটদের ও নারীদের উপহার, প্লাস্টিকের প্রয়োজনীয় জিনিস এবং ঘর সাজানোর শোপিস।</p></details>{shopContact.hasAny && <details><summary>কীভাবে যোগাযোগ করব?</summary><div><ContactLinks /></div></details>}</section>
     </div>
   </div></div>;
 }

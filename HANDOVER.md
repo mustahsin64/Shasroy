@@ -1,197 +1,115 @@
 # Shasroy — agent handover
 
-Updated: 18 October 2026 (Asia/Dhaka).
+Updated: 20 October 2026 (Asia/Dhaka). Phases 1–7 implemented; Phase 8 (production readiness) is next.
 
 ## Start here
 
-Continue the existing project; do not scaffold it again. Read `AGENTS.md` and relevant Next.js documentation in `node_modules/next/dist/docs/` before changing code. Preserve the accepted Bengali storefront design. The next planned implementation is Phase 2: database and backend foundation, when the user requests it.
-
-The user prefers concise responses and step-by-step implementation, with each phase verified before advancing. They described this as “caveman mode”—avoid unnecessary explanation and token waste.
+Continue the existing project; do not scaffold it again. Read `AGENTS.md` and the relevant Next.js docs in `node_modules/next/dist/docs/` before changing code (this Next.js version has breaking changes: for example `middleware` is now `proxy`). Preserve the accepted Bengali storefront design. Keep replies concise; the user works step by step and wants each phase verified before the next ("caveman mode").
 
 ## Repository and state
 
-- Local workspace: `/Users/siam/Developer/Projects/B-shasroy`
-- GitHub: https://github.com/mustahsin64/Shasroy
-- Branch: `main`, tracking `origin/main`.
-- Latest local commit at handover: `98e4117` — `layout improved`.
-- Earlier foundation commit: `d014c52`.
-- Working tree was clean before this handover file was created.
-- Remote tracking status was inspected locally; no fresh fetch was performed for this handover.
-- This file has not been committed or pushed by the handover task.
-
-Git originally authenticated as `siam-shipday` and received a 403. The user subsequently signed in and successfully pushed. Do not change their global Git authentication unless needed and authorized.
+- Workspace: `/Users/siam/Developer/Projects/B-shasroy`; GitHub: https://github.com/mustahsin64/Shasroy; branch `main`.
+- Phases 1–6 are committed and pushed. Phase 7 is implemented in the working tree and **not committed** unless the git log says otherwise. `PHASE_7_IMPLEMENTATION_PLAN.md` is the plan it followed.
+- Git push: the active `gh`/git account on this machine (`siam-shipday`) gets a 403 on this repo. Pushes have worked by using the `mustahsin64` token for a single command (`GH_TOKEN="$(gh auth token --user mustahsin64)" git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`). Do not change the user's global Git/`gh` authentication.
 
 ## Business and design requirements
 
-Store: সাশ্রয় (Shasroy), a Bangladesh e-commerce shop for stationery, kids’ gifts, women’s gift items, plastic household goods, and affordable decorative items.
+Store: সাশ্রয় (Shasroy), a Bangladesh e-commerce shop for stationery, kids' gifts, women's gift items, plastic household goods and affordable decor.
 
-- All storefront copy should be natural Bangla, including navigation and accessibility labels.
-- Required font: **Noto Serif Bengali**, self-hosted through `@fontsource-variable/noto-serif-bengali`.
-- Theme: logo-derived green and gold, with cream, sage, and white surfaces.
-- Logo/tagline: “আপনার পছন্দ আপনার দামে”. Preserve the supplied logo.
-- User disliked generic AI-style marketing copy and the earlier abstract landing-page design.
-- User explicitly requested the layout/design of Gifymo, adapted to Shasroy branding, colors, Bangla, and the specified font.
-
-References inspected:
-
-- Requested preview: https://preview.themeforest.net/item/gifymo-giftshop-woocommerce-theme/full_screen_preview/32503749
-- Accessible author demo: https://demo2.themelexus.com/gifymo/
-
-The ThemeForest preview encountered a security challenge; the author’s public demo was inspected successfully. The implementation is a close custom Next.js adaptation, not an imported WordPress theme or a pixel-perfect reproduction. There is no purchased theme package in this repository.
+- All storefront copy is natural Bangla, including navigation and accessibility labels; admin copy is Bangla too.
+- Font: **Noto Serif Bengali**, self-hosted through `@fontsource-variable/noto-serif-bengali`.
+- Theme: logo-derived green and gold with cream, sage and white surfaces. Logo/tagline: "আপনার পছন্দ আপনার দামে". Preserve the supplied logo (`public/brand/shasroy-logo.png`).
+- Layout follows the Gifymo demo (https://demo2.themelexus.com/gifymo/) as a custom Next.js adaptation, not an imported theme.
+- The user dislikes generic AI-style marketing copy. Never invent prices, reviews, discounts or contact details.
 
 ## Architecture
 
-Agreed: a modular monolith with one Next.js project for storefront, admin, and server-side business logic. No separate Express/NestJS backend or microservices initially.
+Modular monolith: one Next.js 16 (App Router, React 19, TypeScript) project for storefront, admin and server logic. No separate backend.
 
-Implemented:
+- Database: PostgreSQL on Supabase, accessed only from the server through Drizzle (`DATABASE_URL`, transaction pooler; migrations and seed use `DATABASE_URL_DIRECT`, session pooler). Password characters such as `#` must be percent-encoded in these URLs.
+- Every table has RLS enabled with no policies, so the Supabase Data API returns nothing.
+- Money is integer paisa. Prices, stock and totals are validated on the server; orders and stock changes run in transactions.
+- Auth: Supabase Auth magic link for admins only; authorization comes from our own `admin_users` table. Customers check out as guests.
+- Storage: Supabase Storage bucket `product-images` (public read), behind `src/lib/storage.ts`.
+- Styling: Tailwind 4 plus `src/app/storefront.css`, `src/app/admin/admin.css`, `src/app/admin/print.css`.
 
-- Next.js App Router + TypeScript (Next.js 16.4.2 resolved during previous checks).
-- React (19.3.1 resolved during previous checks).
-- Tailwind CSS 4 and custom storefront CSS.
-- shadcn/ui configuration, reusable Button, Radix Slot, Lucide icons.
-- ESLint and TypeScript checks.
-- Locally served Noto Serif Bengali.
-
-Planned, **not implemented**:
-
-- PostgreSQL hosted on Supabase.
-- Drizzle ORM and migrations.
-- Zod validation.
-- Supabase Auth for admins and Supabase Storage for actual product photos.
-- Guest checkout, COD first; SSLCOMMERZ later.
-- Vercel production hosting.
-- Vitest/Playwright tests as meaningful business behavior is introduced.
-
-The earlier Sites skill was consulted, but this is a local Next.js/Vercel project. No Sites registration, Worker deployment, or public deployment was performed.
-
-## Current UI and behavior
-
-- Three-row header: utility strip, logo/information row, navigation/search row.
-- Desktop left sidebar: categories, informational blocks, gift banner, short editorial content.
-- Main column: gift hero, paired banners, four-column product grid, lower banners, recipient categories, FAQ.
-- Multi-column footer.
-- Responsive mobile navigation and horizontally scrolling categories.
-- Bangla search and category filtering over eight hardcoded sample products.
-- Native expandable product descriptions and FAQ entries.
-- Search uses GET query `q`; filtering uses `category`; results anchor is `#products`.
-- `src/app/page.tsx` is an async server component and awaits `searchParams`.
-
-**This is a storefront foundation with sample browsing, not a working e-commerce system.** There is no database connection, real catalog, pricing, cart, checkout, inventory, authentication, admin UI, payment integration, or order creation. Do not imply that Phase 3 is complete just because a product grid exists.
-
-Samples are explicitly labeled as concepts. Images do not represent actual stock; no fabricated prices, reviews, discounts, or working purchase controls were added. Real catalog data should replace the samples in subsequent phases.
-
-## Important files
-
-| File | Purpose |
-| --- | --- |
-| `src/app/page.tsx` | Homepage, sample catalog, categories, server-side query filtering |
-| `src/app/layout.tsx` | Bengali document language, metadata, font/CSS imports, shared shell |
-| `src/app/storefront.css` | Gifymo-style composition, responsive breakpoints, component styling |
-| `src/app/globals.css` | Tailwind import, shared color tokens, base styles; some old landing-page styles remain |
-| `src/components/site-header.tsx` | Logo, navigation, GET search form |
-| `src/components/site-footer.tsx` | Bengali footer and links |
-| `src/components/ui/button.tsx` | Shared Button variants |
-| `src/lib/utils.ts` | `cn` utility |
-| `components.json` | shadcn/ui configuration |
-| `public/brand/shasroy-logo.png` | Original user-supplied logo |
-| `public/images/gift-hero.png` | Generated green/gold gift hero |
-| `public/images/sample-products.png` | Generated 4×2 contact sheet for eight sample products |
-| `public/images/README.md` | Image provenance and generation prompts |
-| `.env.example` | Empty configuration template, safe to commit |
-
-Product imagery uses CSS background positioning to select cells in the contact sheet. It has not been split into separate real product assets. The original logo has an off-white background and generous margins; it is displayed using CSS framing, not a newly traced or transparent logo.
-
-Original supplied logo location (outside repository): `/Users/siam/Downloads/personal/Shasroy/logo, design/সাশ্রয় Bengali Eco Logo.png`. Use the repository copy for application code.
+Not implemented: online payments (SSLCOMMERZ), courier API, SMS/email to customers, customer accounts, reviews, coupons, deployment.
 
 ## Environment and credentials
 
-The user has a Supabase account and entered configuration locally. Earlier, values were moved from `.env.example` to ignored `.env.local`, and the example was cleared. `.env.local` was verified as Git-ignored with owner-only permissions. Its values have not been revalidated for this handover.
-
-Expected names:
+`.env.local` is git-ignored; never print, paste or commit its values. Names (see `.env.example`):
 
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_SERVICE_ROLE_KEY=      # server only: storage uploads, seed
+DATABASE_URL=                   # transaction pooler, port 6543
+DATABASE_URL_DIRECT=            # session pooler, port 5432
+ADMIN_SEED_EMAIL=               # owner admin registered by the seed
+SEED_SAMPLES_ACTIVE=            # development only: true publishes the sample products
 ```
 
-A legacy `NEXT_PUBLIC_SUPABASE_ANON_KEY` entry may also exist locally. Do not print any values, copy them into documentation, or commit `.env.local`. Never expose the service-role key in client code. The presence of an environment key is not proof that it has a usable value.
+The service-role key was pasted into chat once during Phase 3; the user was asked to rotate it. Supabase Authentication > URL Configuration > Redirect URLs must include `http://localhost:3000/**` (done) and later the production domain.
 
-Drizzle migrations will need database connection configuration, typically a server-only connection string. Do not assume the existing API keys provide direct SQL access. Determine the missing configuration safely when Phase 2 starts, and ask the user to set secrets locally rather than paste them into chat.
+There is one Supabase project, used for development. It holds seed data only (8 `SAMPLE-` products, placeholder prices, 3 placeholder delivery zones) and no real orders.
 
 ## Run and verify
 
 ```bash
 npm ci
-npm run dev
-# http://localhost:3000
-
+npm run dev          # http://localhost:3000
 npm run lint
 npm run typecheck
 npm run build
+npm test             # unit tests, no database needed
+npm run test:db      # integration tests against the DATABASE_URL database
+npm run db:generate  # create a migration from src/db/schema.ts
+npm run db:migrate   # apply migrations (uses DATABASE_URL_DIRECT)
+npm run db:check
+npm run db:seed      # repeatable; safe to re-run
 ```
 
-Previous verification on the redesigned storefront:
+`npm run test:db` creates and removes rows tagged `ZZTEST`; it refuses to run if the database contains non-test orders, so point it at a development database only (override: `ALLOW_DB_TESTS_WITH_ORDERS=1`). Tests use Node's built-in runner through `tsx` with `--conditions=react-server`.
 
-- ESLint and TypeScript passed.
-- Production build passed; homepage is dynamically rendered because it uses search parameters.
-- Desktop layout inspected at 1366×900.
-- Mobile layout inspected at 390×844; viewport override reset afterward.
-- Category filter verified: stationery returns notebook and pencil samples.
-- Bangla search verified: “কলম” returns notebook and desk organizer samples.
-- Browser preview last used `http://localhost:3000/`; check whether the dev server is still running before launching another.
-- No automated test suite exists yet.
+Known environment notes: if the user npm cache has permission errors use `--cache /tmp/shasroy-npm-cache`; do not change global cache ownership. The scratchpad under `/private/tmp` can disappear between days, so keep helper scripts in the repo (prefix `.zz-` and delete) rather than there. macOS has no `timeout` command. Avoid `npm audit fix --force`.
 
-Environment issues previously encountered:
+## Phase status
 
-- User npm cache had a permissions error; installation succeeded with `--cache /tmp/shasroy-npm-cache`. Do not delete or change ownership of the global cache as a workaround.
-- Next.js Turbopack build needed sandbox escalation to bind an internal localhost port. This was an environment restriction, not a source error.
-- Earlier audit found five development-only advisories through the Next.js ESLint dependency chain. Production dependency audit then reported zero. These results are historical, not a current security guarantee. Avoid blindly running `npm audit fix --force`; it proposed an incompatible downgrade.
+1. **Foundation** — framework, tooling, brand theme, responsive shell. Done.
+2. **Database** — Drizzle schema (`src/db/schema.ts`), migrations in `drizzle/`, server-only client `src/db/index.ts`, env validation `src/lib/env.ts`, Zod rules `src/lib/validation.ts`, seed `scripts/seed.ts`. Done.
+3. **Product storefront** — `src/lib/catalog.ts`, homepage with search/category/sort, `/products/[slug]` with gallery, variants and stock labels. Storefront lives in `src/app/(shop)/` with its own header/footer layout. Promo banners and occasion tiles still use the static contact sheet `public/images/sample-products.png`. Done.
+4. **Cart** — `src/lib/cart.ts`, `/cart`, httpOnly cookie `shasroy_cart` (only a SHA-256 hash is stored). Prices are never stored in the cart; quantity capped at stock and 10 per line. Done. Abandoned-cart cleanup is Phase 8.
+5. **COD checkout** — `src/lib/checkout.ts`, `/checkout`, `/order/[id]`. `placeOrder` is one transaction: locks the cart, locks variants in id order, re-checks stock, snapshots items, decrements stock, writes inventory movements and status history, deletes the cart. Done.
+6. **Admin dashboard** — `src/app/admin/` (login outside the protected `(panel)/` group), `src/proxy.ts` refreshes the session, `src/lib/admin-auth.ts` verifies claims then requires an active `admin_users` row (linked by email on first sign-in; inactive records are never linked). Every page uses `requireAdmin`, every Server Action `assertAdmin`. Roles in `src/lib/roles.ts`: staff = orders; manager = + catalog, delivery, stock history; owner = + admin users. Orders, products, variants, stock, images (sharp to WebP, 4 MB limit because of Vercel's 4.5 MB body cap) and categories. Done.
+7. **Store operations** — implemented 20 October 2026:
+   - Internal order notes (`order_notes`, append-only, 1–2000 chars, enforced in Zod and by a database check). Shown only on the admin order page; excluded from the customer confirmation and print projections.
+   - Order search (`?q=`): order number, name and phone, with Bangla digits, `+880`/`880` prefixes and partial phones (3+ digits); `%` and `_` are literal. Status tab counts stay global and are labelled so.
+   - Printable slip `/admin/orders/[id]/print?size=a4|a5` (browser print/PDF). Uses a minimal projection (no notes, no history). Money to collect is shown only for unpaid, non-cancelled COD orders; paid, refunded and cancelled orders are labelled instead.
+   - Delivery settings `/admin/delivery` (manager+): fee in taka (decimal-safe, Bangla digits), days, active, sort order; slug is fixed after creation. Edits use optimistic concurrency on `updated_at` and write an audit event in the same transaction. Checkout sends the fee the customer saw (`expectedFeePaisa`); if it changed the order is refused with a message and the customer reviews the new total. The zone row is read with a shared lock so a concurrent edit and order have a defined outcome. Old orders keep their saved fee and zone name. No active zone shows an honest "checkout unavailable" state.
+   - Variant stock history `/admin/products/[id]/variants/[variantId]/history` (manager+): read-only ledger with reason filter and pagination; no invented running balance.
+   - Owner-only admin users `/admin/users`: register (staff or manager), change role, deactivate/reactivate. The service locks actor, target and owner rows, re-verifies the actor is an active owner, and blocks self-deactivation, self-demotion, owner role changes and removing the last active owner. Forms carry the expected role/state so stale forms are rejected. Every change writes `admin_audit_events`. Registering sends no email; the person uses `/admin/login`.
+   - Shared contact details: `src/lib/shop-contact.ts` (single config), `src/components/contact-links.tsx`, used in header, footer, order confirmation and FAQ. **Pending:** `rawShopContact` is empty because the real phone, WhatsApp, Facebook page, email and pickup address have not been supplied; empty or invalid values are omitted everywhere. Fill the values in that file (public data only).
+   - Migration `drizzle/0002_phase7_notes_audit.sql` (additive: `order_notes`, `admin_audit_events`, enum `admin_audit_action`), applied to the development database; row counts of existing tables were unchanged.
+   - Verified: lint, typecheck, build, `db:check`; 14 unit tests and 17 database integration tests pass (permissions in the service layer, notes, search, print projection, stale-fee checkout, inactive zone rollback, stock history, concurrent owner changes, cancel-once stock restore); unauthenticated requests to the new admin routes redirect to login; contact links checked on header, FAQ and footer (desktop and mobile) with temporary values that were then removed.
+   - **Not yet verified:** print previews (A4/A5, long address, many items) and the new admin screens in a signed-in browser; the first-login linking of a newly registered admin through a real magic-link email. Server Actions are covered only through their services, not through HTTP.
+8. **Production readiness** — SEO/sitemap/structured data, performance, rate limiting, logging, analytics, abandoned-cart cleanup, SMTP for auth emails (Supabase's built-in sender is rate-limited), production Redirect URLs, Vercel deployment (region `sin1`), backups, cache strategy.
 
-## Agreed eight-phase MVP plan
+Post-MVP: SSLCOMMERZ, courier API, SMS/email notifications, customer accounts, reviews, coupons.
 
-1. **Project foundation — complete, then visually redesigned.** Framework, tooling, environment template, responsive shell, brand theme.
-2. **Database and backend — complete (18 October 2026).** Supabase/PostgreSQL connection, Drizzle schema/migrations, categories, products, variants, images, inventory, orders/items, delivery areas, admin authorization records, repeatable seed data.
-   - Schema: `src/db/schema.ts`; server-only client: `src/db/index.ts`; env validation: `src/lib/env.ts`; Zod input rules: `src/lib/validation.ts`; migrations: `drizzle/`; seed: `scripts/seed.ts`.
-   - Scripts: `npm run db:generate`, `db:migrate`, `db:check`, `db:studio`, `db:seed`.
-   - RLS is enabled on every table with no policies, so the Supabase Data API returns nothing; the app reads and writes only from the server via `DATABASE_URL`.
-   - Seeded sample products are `draft` with placeholder prices and `SAMPLE-` SKUs. Delivery fees (৳60 / ৳100 / ৳120) are placeholders. Order numbers default to `SH-<sequence>` starting at 1001.
-   - No admin record yet; set `ADMIN_SEED_EMAIL` and re-run the seed.
-3. **Product storefront — complete except sample images (18 October 2026).**
-   - Data access layer: `src/lib/catalog.ts` (server-only); formatting: `src/lib/format.ts`; image URLs: `src/lib/storage.ts` (Supabase Storage bucket `product-images`).
-   - Homepage reads categories/products from the database with server-side search, category filter and sort (`?sort=newest|price-asc|price-desc`).
-   - Product page `/products/[slug]` with gallery, variant choice via `?variant=SKU`, price, stock status; add-to-bag button is disabled until Phase 4.
-   - Samples are published only in development via `SEED_SAMPLES_ACTIVE=true`. The seed uploads one WebP per sample to Storage when `SUPABASE_SERVICE_ROLE_KEY` is set; until then cards show a placeholder icon.
-   - Promo banners and occasion tiles still use the static contact sheet.
-   Original scope: Replace sample data with database-backed homepage/listing/detail pages, galleries, variants, pricing, stock, search/filter/sort.
-4. **Shopping cart — complete (18 October 2026).** Add/update/remove variants, persistent cart, server-validated price and stock.
-   - Tables `carts` (only the SHA-256 hash of the cookie token is stored) and `cart_items` (unique per cart + variant, quantity 1–99); migration `drizzle/0001_carts.sql`.
-   - Logic: `src/lib/cart.ts`; Server Actions: `src/app/cart/actions.ts`; page `/cart`; add-to-bag form on the product page; header bag link shows the item count.
-   - Cookie `shasroy_cart`: httpOnly, SameSite=Lax, Secure in production, 30 days, renewed on activity.
-   - Prices are never stored in the cart; lines always show live price and stock. Quantity is capped at stock and 10 per line. Unavailable or over-stock lines are flagged and excluded from the subtotal.
-   - Not yet: cleanup of abandoned carts (Phase 8). Checkout button is disabled until Phase 5.
-5. **COD checkout — complete (18 October 2026).** Guest name/phone/address, delivery fees, transactional order creation, unique order number, confirmation.
-   - Logic: `src/lib/checkout.ts` (`placeOrder`, `listDeliveryZones`, `getOrderConfirmation`); Server Action `src/app/checkout/actions.ts`; pages `/checkout` and `/order/[id]`; form `src/components/checkout-form.tsx`.
-   - `placeOrder` runs in one transaction: locks the cart row (stops double submits), locks variant rows in id order, re-checks active/stock, inserts order + item snapshots, decrements stock, writes `inventory_movements` (reason `order`) and `order_status_history` (null to `pending`), deletes the cart. Any failure rolls back.
-   - Phone accepts 01…, +880… and Bangla digits; stored as `01XXXXXXXXX`. Totals and fees are computed on the server only.
-   - Confirmation URL uses the order UUID (unguessable); the page masks the phone number. Order numbers are `SH-<sequence>`.
-   - Tested: validation errors, successful order (stock 5 to 1, history, cart cleared), sold-out-before-submit rejection. Test orders were deleted and stock restored.
-   - Not yet: SMS/email notification, rate limiting (Phase 8), order lookup by customer.
-6. **Admin dashboard — complete (18 October 2026).** Secure login, categories/products/images/variants/stock/prices, order management.
-   - Routes: storefront moved to `src/app/(shop)/` (own layout with header/footer); admin at `src/app/admin/` with `login/` outside the protected `(panel)/` group; magic-link landing `src/app/auth/callback/route.ts`; session refresh in `src/proxy.ts` (Next 16 name for middleware).
-   - Auth: Supabase Auth magic link (no passwords). `src/lib/admin-auth.ts` verifies JWT claims, then requires an active `admin_users` row (linked by email on first sign-in). Roles: staff = orders; manager = + products/categories; owner = all. Every page uses `requireAdmin`, every Server Action `assertAdmin`.
-   - Supabase setting required: Authentication > URL Configuration > Redirect URLs must include `http://localhost:3000/**` (done) and later the production domain.
-   - Orders (`src/lib/admin/orders.ts`): list/filter/paginate, detail, status flow pending > confirmed > processing > shipped > delivered, cancel from any open state restores stock (inventory `cancellation`), delivered marks COD paid, history with admin and note.
-   - Catalog (`src/lib/admin/products.ts`, `src/lib/admin/categories.ts`): create/edit products, variants (one default enforced), stock set with movement log, images resized to max 1200px WebP via sharp and stored in Supabase Storage (4 MB upload limit because Vercel caps bodies at 4.5 MB), primary image, delete. Ordered variants and non-empty categories cannot be deleted.
-   - Tested: login as owner in Chrome; 25 scripted checks against the real DB/storage (create, duplicates, variants, stock, images, order lifecycle, stock restore), all test data removed.
-   - Not yet: managing admin users from the UI (use seed/SQL), staff notes, printable order (Phase 7).
-7. **Store operations.** Status history, stock restoration on cancellation, staff notes, printable order view, delivery settings, contact links once actual contact details are supplied.
-8. **Production readiness.** SEO/sitemap/structured data, performance, security/rate limiting, logging, analytics, meaningful checkout/inventory tests, Vercel deployment and backup verification.
+## Important files
 
-Post-MVP: SSLCOMMERZ, courier API integration, customer accounts, reviews, coupons, stock synchronization.
-
-For database work: store money as integer paisa; validate totals and inventory on the server; use transactions for stock reservations/orders; separate admin authentication from authorization; protect customer and order data. Keep the accepted design while connecting real behavior.
+| Path | Purpose |
+| --- | --- |
+| `src/db/schema.ts` | All tables, enums, relations, RLS |
+| `src/lib/admin/*.ts` | Server-only admin services (orders, notes, products, categories, delivery, inventory, users, audit) |
+| `src/lib/admin-auth.ts`, `src/lib/roles.ts` | Admin authentication/authorization, role ranking |
+| `src/lib/catalog.ts`, `cart.ts`, `checkout.ts` | Storefront services |
+| `src/lib/money.ts`, `validation.ts`, `format.ts` | Taka/paisa parsing, shared Zod rules, Bangla formatting |
+| `src/lib/shop-contact.ts` | Public contact details (empty until supplied) |
+| `src/app/(shop)/` | Storefront routes; `src/app/admin/` admin routes; `src/proxy.ts` session refresh |
+| `scripts/seed.ts` | Repeatable seed (categories, zones, sample products, optional owner) |
+| `tests/` | `unit.test.mts`, `db.test.mts` |
 
 ## Suggested next-agent prompt
 
-> Read HANDOVER.md and AGENTS.md in this repository. Continue Shasroy from the current implementation. Keep the Gifymo-inspired green/gold Bengali design and Noto Serif Bengali font. Implement Phase 2: Supabase/PostgreSQL and Drizzle database foundation with migrations, access controls, and repeatable seed data. Inspect existing configuration without exposing credentials. Verify the work and report any remaining configuration needed. Keep responses concise.
+> Read HANDOVER.md and AGENTS.md. Continue Shasroy from the current implementation. Keep the green/gold Bengali design and Noto Serif Bengali. First check `git status`/`git log` for whether Phase 7 is committed, then verify the Phase 7 items marked "not yet verified" with a signed-in admin session, wire the real shop contact details if the user has supplied them, and then start Phase 8 only when asked. Keep responses concise.

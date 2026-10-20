@@ -47,6 +47,14 @@ export const inventoryReason = pgEnum("inventory_reason", [
   "adjustment",
 ]);
 export const adminRole = pgEnum("admin_role", ["owner", "manager", "staff"]);
+export const adminAuditAction = pgEnum("admin_audit_action", [
+  "delivery_zone_create",
+  "delivery_zone_update",
+  "admin_register",
+  "admin_activate",
+  "admin_deactivate",
+  "admin_role_change",
+]);
 
 export const categories = pgTable(
   "categories",
@@ -297,6 +305,45 @@ export const cartItems = pgTable(
   ],
 ).enableRLS();
 
+// Append-only internal notes on orders. Never shown to customers or on print slips.
+export const orderNotes = pgTable(
+  "order_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => adminUsers.id, { onDelete: "restrict" }),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [
+    index("order_notes_order_idx").on(t.orderId, t.createdAt, t.id),
+    check("order_notes_body_length", sql`char_length(${t.body}) between 1 and 2000 and ${t.body} = btrim(${t.body})`),
+  ],
+).enableRLS();
+
+// Written in the same transaction as the change it describes. before/after hold
+// allowlisted fields only: never credentials, tokens or raw request payloads.
+export const adminAuditEvents = pgTable(
+  "admin_audit_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    actorId: uuid("actor_id")
+      .notNull()
+      .references(() => adminUsers.id, { onDelete: "restrict" }),
+    action: adminAuditAction("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: uuid("entity_id").notNull(),
+    before: jsonb("before").$type<Record<string, unknown>>(),
+    after: jsonb("after").$type<Record<string, unknown>>(),
+    createdAt: timestamps.createdAt,
+  },
+  (t) => [index("admin_audit_entity_idx").on(t.entityType, t.entityId, t.createdAt)],
+).enableRLS();
+
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
   parent: one(categories, { fields: [categories.parentId], references: [categories.id], relationName: "category_parent" }),
   children: many(categories, { relationName: "category_parent" }),
@@ -324,6 +371,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   deliveryZone: one(deliveryZones, { fields: [orders.deliveryZoneId], references: [deliveryZones.id] }),
   items: many(orderItems),
   statusHistory: many(orderStatusHistory),
+  notes: many(orderNotes),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -339,6 +387,12 @@ export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one 
 export const inventoryMovementsRelations = relations(inventoryMovements, ({ one }) => ({
   variant: one(productVariants, { fields: [inventoryMovements.variantId], references: [productVariants.id] }),
   order: one(orders, { fields: [inventoryMovements.orderId], references: [orders.id] }),
+  createdByAdmin: one(adminUsers, { fields: [inventoryMovements.createdBy], references: [adminUsers.id] }),
+}));
+
+export const orderNotesRelations = relations(orderNotes, ({ one }) => ({
+  order: one(orders, { fields: [orderNotes.orderId], references: [orders.id] }),
+  author: one(adminUsers, { fields: [orderNotes.createdBy], references: [adminUsers.id] }),
 }));
 
 export const cartsRelations = relations(carts, ({ many }) => ({

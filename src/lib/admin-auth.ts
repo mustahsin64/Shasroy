@@ -3,12 +3,12 @@ import { and, eq, isNull } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { db, schema } from "@/db";
+import { hasRole, type Admin, type AdminRole } from "@/lib/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const { adminUsers } = schema;
 
-export type AdminRole = (typeof schema.adminRole.enumValues)[number];
-export type Admin = { id: string; email: string; displayName: string | null; role: AdminRole };
+export { hasRole, type Admin, type AdminRole } from "@/lib/roles";
 
 /**
  * Authentication comes from Supabase Auth (verified JWT claims).
@@ -28,7 +28,7 @@ export const getAdmin = cache(async (): Promise<Admin | null> => {
     const [linked] = await db
       .update(adminUsers)
       .set({ authUserId: claims.sub })
-      .where(and(eq(adminUsers.email, email), isNull(adminUsers.authUserId)))
+      .where(and(eq(adminUsers.email, email), isNull(adminUsers.authUserId), eq(adminUsers.isActive, true)))
       .returning();
     admin = linked;
   }
@@ -36,11 +36,6 @@ export const getAdmin = cache(async (): Promise<Admin | null> => {
   return { id: admin.id, email: admin.email, displayName: admin.displayName, role: admin.role };
 });
 
-const roleRank: Record<AdminRole, number> = { staff: 1, manager: 2, owner: 3 };
-
-export function hasRole(admin: Admin, minimum: AdminRole) {
-  return roleRank[admin.role] >= roleRank[minimum];
-}
 
 /** For pages: redirects to login when not an admin, or home of admin when the role is too low. */
 export async function requireAdmin(minimum: AdminRole = "staff"): Promise<Admin> {

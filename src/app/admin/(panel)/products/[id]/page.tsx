@@ -73,6 +73,7 @@ export default async function EditProductPage({ params, searchParams }: { params
         <div className="variant-head">
           <strong>{variant.nameBn}</strong>
           <span>{formatTaka(variant.pricePaisa)} · স্টক {formatNumberBn(variant.stockQuantity)}{variant.isDefault && " · প্রধান"}{!variant.isActive && " · বন্ধ"}</span>
+          <Link href={`/admin/products/${product.id}/variants/${variant.id}/history`} className="admin-link">স্টকের ইতিহাস</Link>
         </div>
         <ActionForm action={saveVariantAction} submitLabel="ধরন সংরক্ষণ">
           {hidden}<input type="hidden" name="variantId" value={variant.id} />

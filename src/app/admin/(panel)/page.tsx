@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "ড্যাশবোর্ড" };
 export default async function AdminHome({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
   const admin = await requireAdmin();
   const { denied } = await searchParams;
-  const [counts, recent, lowStock] = await Promise.all([orderStatusCounts(), listOrders("pending"), hasRole(admin, "manager") ? lowStockVariants() : Promise.resolve([])]);
+  const [counts, recent, lowStock] = await Promise.all([orderStatusCounts(), listOrders({ status: "pending" }), hasRole(admin, "manager") ? lowStockVariants() : Promise.resolve([])]);
   const open = (counts.pending ?? 0) + (counts.confirmed ?? 0) + (counts.processing ?? 0) + (counts.shipped ?? 0);
 
   return <>

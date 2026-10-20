@@ -4,6 +4,8 @@ import { and, asc, count, desc, eq, ne, sql } from "drizzle-orm";
 import sharp from "sharp";
 import { z } from "zod";
 import { db, schema } from "@/db";
+import { isUniqueViolation } from "@/lib/db-errors";
+import { bnDigitsToLatin, takaToPaisa } from "@/lib/money";
 import { PRODUCT_IMAGE_BUCKET } from "@/lib/storage";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { slugSchema } from "@/lib/validation";
@@ -11,13 +13,6 @@ import { slugSchema } from "@/lib/validation";
 const { categories, products, productVariants, productImages, inventoryMovements, orderItems } = schema;
 
 // ---------- validation (form input, prices typed in taka) ----------
-
-const takaToPaisa = z
-  .string()
-  .trim()
-  .regex(/^\d{1,7}(\.\d{1,2})?$/, "দাম টাকায় লিখুন, যেমন ২৫০ বা 250.50")
-  .transform(v => Math.round(Number(v) * 100));
-const bnDigitsToLatin = (v: unknown) => (typeof v === "string" ? v.replace(/[০-৯]/g, d => String("০১২৩৪৫৬৭৮৯".indexOf(d))) : v);
 
 export const productFieldsSchema = z.object({
   nameBn: z.string().trim().min(1, "নাম লিখুন।").max(160),
@@ -114,13 +109,6 @@ export async function lowStockVariants(threshold = 5) {
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; field?: string; error: string };
 
-/** Drizzle wraps driver errors, so walk the cause chain looking for Postgres 23505 on the given constraint. */
-function isUniqueViolation(error: unknown, constraint: string): boolean {
-  for (let e = error as { code?: string; constraint_name?: string; cause?: unknown } | undefined, depth = 0; e && depth < 5; e = e.cause as typeof e, depth++) {
-    if (e.code === "23505" && e.constraint_name === constraint) return true;
-  }
-  return false;
-}
 
 export async function createProduct(fields: ProductFields, variant: VariantFields & { stock: number }, adminId: string): Promise<Result<{ id: string }>> {
   try {
