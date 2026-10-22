@@ -1,6 +1,6 @@
 # Shasroy — agent handover
 
-Updated: 20 October 2026 (Asia/Dhaka). Phases 1–7 implemented; Phase 8 (production readiness) is next.
+Updated: 22 October 2026 (Asia/Dhaka). Phases 1–7 implemented and committed; Phase 8 (production readiness) partially done. `main` is at `d5e4a95`.
 
 ## Start here
 
@@ -9,7 +9,7 @@ Continue the existing project; do not scaffold it again. Read `AGENTS.md` and th
 ## Repository and state
 
 - Workspace: `/Users/siam/Developer/Projects/B-shasroy`; GitHub: https://github.com/mustahsin64/Shasroy; branch `main`.
-- Phases 1–6 are committed and pushed. Phase 7 is implemented in the working tree and **not committed** unless the git log says otherwise. `PHASE_7_IMPLEMENTATION_PLAN.md` is the plan it followed.
+- Phases 1–7 are committed and pushed; Phase 8 is in progress. Recent commits: `d5e4a95` (Phase 8 SEO/error pages/rate limiting/cart cleanup/logging), `ed3d652` (header redesign, hero category carousel, new-arrivals belt), `acba92d` (Phase 7). `PHASE_7_IMPLEMENTATION_PLAN.md` stays untracked in the repo root.
 - Git push: the active `gh`/git account on this machine (`siam-shipday`) gets a 403 on this repo. Pushes have worked by using the `mustahsin64` token for a single command (`GH_TOKEN="$(gh auth token --user mustahsin64)" git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push origin main`). Do not change the user's global Git/`gh` authentication.
 
 ## Business and design requirements
@@ -92,7 +92,17 @@ Known environment notes: if the user npm cache has permission errors use `--cach
    - Migration `drizzle/0002_phase7_notes_audit.sql` (additive: `order_notes`, `admin_audit_events`, enum `admin_audit_action`), applied to the development database; row counts of existing tables were unchanged.
    - Verified: lint, typecheck, build, `db:check`; 14 unit tests and 17 database integration tests pass (permissions in the service layer, notes, search, print projection, stale-fee checkout, inactive zone rollback, stock history, concurrent owner changes, cancel-once stock restore); unauthenticated requests to the new admin routes redirect to login; contact links checked on header, FAQ and footer (desktop and mobile) with temporary values that were then removed.
    - **Not yet verified:** print previews (A4/A5, long address, many items) and the new admin screens in a signed-in browser; the first-login linking of a newly registered admin through a real magic-link email. Server Actions are covered only through their services, not through HTTP.
-8. **Production readiness** — SEO/sitemap/structured data, performance, rate limiting, logging, analytics, abandoned-cart cleanup, SMTP for auth emails (Supabase's built-in sender is rate-limited), production Redirect URLs, Vercel deployment (region `sin1`), backups, cache strategy.
+8. **Production readiness** — in progress.
+   - **Done (committed `d5e4a95`):**
+     - Storefront redesign (committed `ed3d652`): centred-logo header with search popover and bag (`src/components/site-header.tsx`); auto-scrolling "new arrivals" belt (`src/components/new-arrivals.tsx`); full-width hero carousel whose top tab bar navigates one slide per category, with autoplay, arrows and dots (`src/components/hero-carousel.tsx`). Each slide references `/images/<slug>-hero.png` (slugs: kids, stationery, women, gifts, kitchen, travel, wearable) and falls back to a cream background until the file exists; filenames and prompts are in `public/images/README.md`.
+     - SEO: `src/app/sitemap.ts` and `src/app/robots.ts` (admin and transactional routes disallowed), `metadataBase` and Open Graph in `src/app/layout.tsx`, JSON-LD via `src/components/json-ld.tsx` (Organization sitewide, Product on product pages). Site origin from `src/lib/site.ts`.
+     - Storefront `not-found.tsx` and `error.tsx` under `src/app/(shop)/`.
+     - Best-effort in-memory rate limiting (`src/lib/rate-limit.ts`) on the checkout and admin login server actions. Not distributed; per instance only.
+     - Abandoned-cart cleanup: `src/lib/cart-cleanup.ts` (`deleteStaleCarts`, 30-day TTL) and `POST /api/cron/cleanup-carts`, guarded by `CRON_SECRET` (returns 404 when the secret is unset).
+     - Structured logging helper `src/lib/log.ts` (one JSON line per event; no secrets).
+     - New env vars `NEXT_PUBLIC_SITE_URL` and `CRON_SECRET` documented in `.env.example`.
+     - Verified: lint, typecheck, build, 14 unit tests, and a security review of the diff — all clean. `test:db` not run this session.
+   - **Remaining (needs the user):** the 6 category hero images; real shop contact details in `src/lib/shop-contact.ts`; Vercel deployment (region `sin1`, all env vars including `NEXT_PUBLIC_SITE_URL` and `CRON_SECRET`, production Supabase Redirect URLs); a Vercel Cron job calling `POST /api/cron/cleanup-carts` with `Authorization: Bearer <CRON_SECRET>`; SMTP for auth emails (Supabase's built-in sender is rate-limited); backups; a signed-in check of the print slips and new admin screens; and confirmation that the DB password and `sb_secret_` key pasted earlier were rotated.
 
 Post-MVP: SSLCOMMERZ, courier API, SMS/email notifications, customer accounts, reviews, coupons.
 
@@ -106,10 +116,14 @@ Post-MVP: SSLCOMMERZ, courier API, SMS/email notifications, customer accounts, r
 | `src/lib/catalog.ts`, `cart.ts`, `checkout.ts` | Storefront services |
 | `src/lib/money.ts`, `validation.ts`, `format.ts` | Taka/paisa parsing, shared Zod rules, Bangla formatting |
 | `src/lib/shop-contact.ts` | Public contact details (empty until supplied) |
+| `src/lib/site.ts`, `log.ts`, `rate-limit.ts`, `cart-cleanup.ts` | Site origin, structured logging, in-memory rate limiting, abandoned-cart cleanup |
+| `src/app/sitemap.ts`, `robots.ts`, `src/components/json-ld.tsx` | SEO: sitemap, robots, structured data |
+| `src/components/site-header.tsx`, `hero-carousel.tsx`, `new-arrivals.tsx` | Storefront header, hero category carousel, new-arrivals belt |
+| `src/app/api/cron/cleanup-carts/route.ts` | CRON_SECRET-guarded cart cleanup endpoint |
 | `src/app/(shop)/` | Storefront routes; `src/app/admin/` admin routes; `src/proxy.ts` session refresh |
 | `scripts/seed.ts` | Repeatable seed (categories, zones, sample products, optional owner) |
 | `tests/` | `unit.test.mts`, `db.test.mts` |
 
 ## Suggested next-agent prompt
 
-> Read HANDOVER.md and AGENTS.md. Continue Shasroy from the current implementation. Keep the green/gold Bengali design and Noto Serif Bengali. First check `git status`/`git log` for whether Phase 7 is committed, then verify the Phase 7 items marked "not yet verified" with a signed-in admin session, wire the real shop contact details if the user has supplied them, and then start Phase 8 only when asked. Keep responses concise.
+> Read HANDOVER.md and AGENTS.md. Continue Shasroy from the current implementation (`main` at `d5e4a95`). Keep the green/gold Bengali design and Noto Serif Bengali. Phases 1–7 are committed and Phase 8 is in progress; see the Phase 8 "Remaining" list. Finish Phase 8 as the user supplies what each item needs (category images, contact details, Vercel deploy and env vars, Vercel Cron for `/api/cron/cleanup-carts`, SMTP, backups), and verify print slips and admin screens in a signed-in browser. Keep responses concise.
