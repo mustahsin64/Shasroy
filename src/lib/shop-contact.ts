@@ -9,10 +9,10 @@ import { BD_MOBILE_PATTERN, normalizeBdPhone } from "@/lib/validation";
  * from every page; nothing here is ever invented.
  */
 export const rawShopContact = {
-  phone: "", // e.g. "01712345678"
+  phone: "01712241476",
   whatsapp: "", // e.g. "01712345678" or "+8801712345678"
   facebookUrl: "", // e.g. "https://www.facebook.com/shasroy"
-  email: "", // e.g. "hello@example.com"
+  email: "mustahsin64@gmail.com",
   pickupAddress: "", // optional, shown as plain text
 };
 

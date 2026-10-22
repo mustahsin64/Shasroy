@@ -42,11 +42,10 @@ const categories = z.array(categoryInputSchema).parse([
   { slug: "gifts", nameBn: "জন্মদিনের উপহার", sortOrder: 60 },
 ]);
 
-// Placeholder fees; confirm with the shop owner before launch.
+// The shop ships from Rajshahi. Fees confirmed by the owner (22 Oct 2026); edit later in /admin/delivery.
 const deliveryZones = z.array(deliveryZoneInputSchema).parse([
-  { slug: "inside-dhaka", nameBn: "ঢাকা সিটির ভেতরে", feePaisa: taka(60), minDays: 1, maxDays: 2, sortOrder: 10 },
-  { slug: "dhaka-suburbs", nameBn: "ঢাকার আশেপাশে", feePaisa: taka(100), minDays: 2, maxDays: 3, sortOrder: 20 },
-  { slug: "outside-dhaka", nameBn: "ঢাকার বাইরে", feePaisa: taka(120), minDays: 3, maxDays: 5, sortOrder: 30 },
+  { slug: "inside-rajshahi", nameBn: "রাজশাহী শহরের ভেতরে", feePaisa: taka(30), minDays: 1, maxDays: 2, sortOrder: 10 },
+  { slug: "outside-rajshahi", nameBn: "রাজশাহীর বাইরে (সারা দেশে)", feePaisa: taka(120), minDays: 3, maxDays: 5, sortOrder: 20 },
 ]);
 
 const single = (sku: string, price: number, stock: number) => [
@@ -165,10 +164,8 @@ async function main() {
         await tx
           .insert(schema.deliveryZones)
           .values(zone)
-          .onConflictDoUpdate({
-            target: schema.deliveryZones.slug,
-            set: { nameBn: zone.nameBn, feePaisa: zone.feePaisa, minDays: zone.minDays, maxDays: zone.maxDays, sortOrder: zone.sortOrder },
-          });
+          // Insert only: re-running the seed must never overwrite fees edited in admin.
+          .onConflictDoNothing({ target: schema.deliveryZones.slug });
       }
 
       let newVariants = 0;
