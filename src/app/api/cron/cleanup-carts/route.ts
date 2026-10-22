@@ -6,8 +6,9 @@ export const dynamic = "force-dynamic";
 
 /**
  * Deletes abandoned carts. Protect with CRON_SECRET and call on a schedule
- * (e.g. a Vercel Cron job) with header: Authorization: Bearer <CRON_SECRET>.
- * Returns 404 when no secret is configured so the endpoint is effectively off.
+ * with header: Authorization: Bearer <CRON_SECRET>. Vercel Cron (vercel.json)
+ * sends that header itself, using GET. Returns 404 when no secret is
+ * configured so the endpoint is effectively off.
  */
 export async function POST(request: NextRequest) {
   const secret = process.env.CRON_SECRET?.trim();
@@ -24,3 +25,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "cleanup failed" }, { status: 500 });
   }
 }
+
+// Vercel Cron calls with GET.
+export const GET = POST;
