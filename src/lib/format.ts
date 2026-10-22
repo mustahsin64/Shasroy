@@ -9,6 +9,11 @@ export function formatTaka(paisa: number) {
   return `৳${bnNumber.format(paisa / 100)}`;
 }
 
+/** (1, 2) -> "১–২ দিন", (2, 2) -> "২ দিন" */
+export function formatDeliveryDays(minDays: number, maxDays: number) {
+  return minDays === maxDays ? `${formatNumberBn(minDays)} দিন` : `${formatNumberBn(minDays)}–${formatNumberBn(maxDays)} দিন`;
+}
+
 export const LOW_STOCK_THRESHOLD = 5;
 
 export function stockLabel(quantity: number) {

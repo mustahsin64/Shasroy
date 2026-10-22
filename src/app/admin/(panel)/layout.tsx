@@ -13,6 +13,7 @@ export default async function AdminPanelLayout({ children }: Readonly<{ children
         {canManageCatalog && <Link href="/admin/products">পণ্য</Link>}
         {canManageCatalog && <Link href="/admin/categories">বিভাগ</Link>}
         {canManageCatalog && <Link href="/admin/delivery">ডেলিভারি</Link>}
+        {canManageCatalog && <Link href="/admin/settings">সেটিংস</Link>}
         {hasRole(admin, "owner") && <Link href="/admin/users">ব্যবহারকারী</Link>}
         <Link href="/" target="_blank">দোকান দেখুন ↗</Link>
       </nav>

@@ -150,6 +150,8 @@ export async function getOrderForPrint(id: string) {
       customerPhone: true,
       shippingAddress: true,
       customerNote: true,
+      giftWrap: true,
+      giftMessage: true,
       deliveryZoneNameBn: true,
       subtotalPaisa: true,
       deliveryFeePaisa: true,

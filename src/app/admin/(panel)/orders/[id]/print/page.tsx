@@ -18,6 +18,7 @@ export default async function PrintOrderPage({ params, searchParams }: { params:
   if (!order) notFound();
   const size: SlipSize = sizeParam === "a5" ? "a5" : "a4";
   const collection = collectionState(order);
+  const hidePrices = order.giftWrap;
 
   return <>
     {/* size is one of two fixed literals, never raw input */}
@@ -41,23 +42,30 @@ export default async function PrintOrderPage({ params, searchParams }: { params:
         {order.customerNote && <p className="slip-note">গ্রাহকের নির্দেশনা: {order.customerNote}</p>}
       </section>
 
+      {order.giftWrap && <section className="slip-block slip-gift">
+        <h2>উপহার</h2>
+        <p>গিফট র‍্যাপ করে পাঠান। প্যাকেটে দামের কোনো কাগজ দেবেন না।</p>
+        {order.giftMessage && <p className="slip-gift-message">কার্ডে লিখুন: “{order.giftMessage}”</p>}
+      </section>}
+
+      {/* Gift orders: no item prices or breakdown on the slip; only the amount to collect remains. */}
       <table className="slip-items">
-        <thead><tr><th>পণ্য</th><th>কোড</th><th className="num">দাম</th><th className="num">পরিমাণ</th><th className="num">মোট</th></tr></thead>
+        <thead><tr><th>পণ্য</th><th>কোড</th>{!hidePrices && <th className="num">দাম</th>}<th className="num">পরিমাণ</th>{!hidePrices && <th className="num">মোট</th>}</tr></thead>
         <tbody>{order.items.map(item => <tr key={item.id}>
           <td>{item.productNameBn}{item.variantNameBn !== "সাধারণ" && <small> ({item.variantNameBn})</small>}</td>
           <td><small>{item.sku}</small></td>
-          <td className="num">{formatTaka(item.unitPricePaisa)}</td>
+          {!hidePrices && <td className="num">{formatTaka(item.unitPricePaisa)}</td>}
           <td className="num">{formatNumberBn(item.quantity)}</td>
-          <td className="num">{formatTaka(item.lineTotalPaisa)}</td>
+          {!hidePrices && <td className="num">{formatTaka(item.lineTotalPaisa)}</td>}
         </tr>)}</tbody>
       </table>
 
-      <dl className="slip-totals">
+      {!hidePrices && <dl className="slip-totals">
         <div><dt>পণ্যের দাম</dt><dd>{formatTaka(order.subtotalPaisa)}</dd></div>
         <div><dt>ডেলিভারি চার্জ</dt><dd>{formatTaka(order.deliveryFeePaisa)}</dd></div>
         {order.discountPaisa > 0 && <div><dt>ছাড়</dt><dd>−{formatTaka(order.discountPaisa)}</dd></div>}
         <div className="slip-grand"><dt>মোট</dt><dd>{formatTaka(order.totalPaisa)}</dd></div>
-      </dl>
+      </dl>}
 
       <div className={`slip-collect slip-collect-${collection.kind}`}>
         {collection.kind === "collect" && <>পণ্য হাতে দিয়ে আদায় করুন: <strong>{formatTaka(collection.amountPaisa)}</strong> (ক্যাশ অন ডেলিভারি)</>}

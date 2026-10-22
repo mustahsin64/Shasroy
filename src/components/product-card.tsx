@@ -1,6 +1,7 @@
 import { Gift } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { QuickAddButton } from "@/components/quick-add-button";
 import type { ProductSummary } from "@/lib/catalog";
 import { formatTaka, stockLabel } from "@/lib/format";
 import { productImageUrl } from "@/lib/storage";
@@ -21,5 +22,8 @@ export function ProductCard({ product }: { product: ProductSummary }) {
       <p className="product-price">{product.minPricePaisa === product.maxPricePaisa ? price : <>{price} <small>থেকে</small></>}</p>
       <p className={`stock-badge stock-${stock.tone}`}>{stock.text}</p>
     </Link>
+    {product.stockQuantity > 0 && (product.variantCount === 1
+      ? <QuickAddButton variantId={product.firstVariantId} productName={product.nameBn} />
+      : <Link className="quick-add-choose" href={`/products/${product.slug}`}>ধরন বেছে নিন</Link>)}
   </article>;
 }

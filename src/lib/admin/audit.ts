@@ -10,7 +10,7 @@ type AuditAction = (typeof schema.adminAuditAction.enumValues)[number];
  */
 export async function recordAudit(
   tx: Tx,
-  event: { actorId: string; action: AuditAction; entityType: "delivery_zone" | "admin_user"; entityId: string; before?: Record<string, unknown> | null; after?: Record<string, unknown> | null },
+  event: { actorId: string; action: AuditAction; entityType: "delivery_zone" | "admin_user" | "shop_settings"; entityId: string; before?: Record<string, unknown> | null; after?: Record<string, unknown> | null },
 ) {
   await tx.insert(schema.adminAuditEvents).values({
     actorId: event.actorId,

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db, schema } from "@/db";
 import { BD_MOBILE_PATTERN, normalizeBdPhone } from "@/lib/validation";
 
-const { carts, cartItems, deliveryZones, inventoryMovements, orderItems, orders, orderStatusHistory, productVariants, products } = schema;
+const { carts, cartItems, deliveryZones, inventoryMovements, orderItems, orders, orderStatusHistory, productVariants, products, shopSettings } = schema;
 
 export async function listDeliveryZones() {
   return db
@@ -23,13 +23,17 @@ export const checkoutSchema = z.object({
   customerNote: z.string().trim().max(500, "নোট ৫০০ অক্ষরের মধ্যে রাখুন।").transform(v => v || null),
   // The delivery fee the customer saw when confirming; the server refuses if it changed since.
   expectedFeePaisa: z.coerce.number().int().min(0),
+  giftWrap: z.string().transform(v => v === "on"),
+  giftMessage: z.string().trim().max(200, "উপহার বার্তা ২০০ অক্ষরের মধ্যে রাখুন।").transform(v => v || null),
+  // Same idea for the gift wrap fee; only checked when gift wrap is chosen.
+  expectedGiftWrapFeePaisa: z.union([z.literal(""), z.coerce.number().int().min(0)]).transform(v => (v === "" ? null : v)),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 
 export type PlaceOrderResult =
   | { ok: true; orderId: string; orderNumber: string }
-  | { ok: false; error: "empty-cart" | "zone-unavailable" | "cart-changed" | "fee-changed" };
+  | { ok: false; error: "empty-cart" | "zone-unavailable" | "cart-changed" | "fee-changed" | "gift-wrap-unavailable" | "gift-wrap-fee-changed" };
 
 /**
  * Creates a cash-on-delivery order from the cart in one transaction:
@@ -55,6 +59,15 @@ export async function placeOrder(cartId: string, input: CheckoutInput): Promise<
       .for("share");
     if (!zone) return { ok: false, error: "zone-unavailable" } as const;
     if (zone.feePaisa !== input.expectedFeePaisa) return { ok: false, error: "fee-changed" } as const;
+
+    let giftWrapFeePaisa = 0;
+    if (input.giftWrap) {
+      // Shared lock for the same reason as the zone: a concurrent settings edit cannot slip between check and charge.
+      const [settings] = await tx.select({ enabled: shopSettings.giftWrapEnabled, feePaisa: shopSettings.giftWrapFeePaisa }).from(shopSettings).limit(1).for("share");
+      if (!settings?.enabled) return { ok: false, error: "gift-wrap-unavailable" } as const;
+      if (settings.feePaisa !== input.expectedGiftWrapFeePaisa) return { ok: false, error: "gift-wrap-fee-changed" } as const;
+      giftWrapFeePaisa = settings.feePaisa;
+    }
 
     // Lock variants in a stable order to avoid deadlocks between concurrent orders.
     const variantIds = items.map(item => item.variantId).sort();
@@ -89,11 +102,14 @@ export async function placeOrder(cartId: string, input: CheckoutInput): Promise<
         customerEmail: input.customerEmail,
         shippingAddress: input.shippingAddress,
         customerNote: input.customerNote,
+        giftWrap: input.giftWrap,
+        giftWrapFeePaisa,
+        giftMessage: input.giftWrap ? input.giftMessage : null,
         deliveryZoneId: zone.id,
         deliveryZoneNameBn: zone.nameBn,
         subtotalPaisa,
         deliveryFeePaisa: zone.feePaisa,
-        totalPaisa: subtotalPaisa + zone.feePaisa,
+        totalPaisa: subtotalPaisa + zone.feePaisa + giftWrapFeePaisa,
         paymentMethod: "cod",
       })
       .returning({ id: orders.id, orderNumber: orders.orderNumber });
@@ -141,6 +157,9 @@ export async function getOrderConfirmation(orderId: string) {
       deliveryZoneNameBn: true,
       subtotalPaisa: true,
       deliveryFeePaisa: true,
+      giftWrap: true,
+      giftWrapFeePaisa: true,
+      giftMessage: true,
       discountPaisa: true,
       totalPaisa: true,
       createdAt: true,

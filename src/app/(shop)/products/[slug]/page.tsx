@@ -1,4 +1,4 @@
-import { ChevronRight, Banknote, Package, ArrowUpRight } from "lucide-react";
+import { ChevronRight, Banknote, PackageCheck, ArrowUpRight, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,7 +8,8 @@ import { ProductImage } from "@/components/product-card";
 import { JsonLd } from "@/components/json-ld";
 import { MAX_QUANTITY_PER_LINE } from "@/lib/cart";
 import { getProductBySlug, listProducts } from "@/lib/catalog";
-import { formatTaka, stockLabel } from "@/lib/format";
+import { listDeliveryZones } from "@/lib/checkout";
+import { formatDeliveryDays, formatTaka, stockLabel } from "@/lib/format";
 import { absoluteUrl } from "@/lib/site";
 import { productImageUrl } from "@/lib/storage";
 
@@ -44,7 +45,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
     product.variants[0];
   const stock = stockLabel(variant.stockQuantity);
   const variantImageIndex = product.images.findIndex(image => image.variantId === variant.id);
-  const related = (await listProducts({ categorySlug: product.category.slug })).filter(item => item.id !== product.id).slice(0, 2);
+  const [relatedAll, zones] = await Promise.all([listProducts({ categorySlug: product.category.slug }), listDeliveryZones()]);
+  const related = relatedAll.filter(item => item.id !== product.id).slice(0, 2);
 
   const prices = product.variants.map(v => v.pricePaisa);
   const productLd = {
@@ -105,9 +107,13 @@ export default async function ProductPage({ params, searchParams }: Props) {
         </section>}
         <div className="product-service-notes">
           <span><Banknote size={22} /> হাতে পেয়ে টাকা দিন</span>
-          <span><Package size={22} /> ডেলিভারি খরচ চেকআউটে</span>
+          <span><PackageCheck size={22} /> দেখে নিয়ে টাকা দিন</span>
         </div>
-        <details className="product-disclosure"><summary>অর্ডার করবেন যেভাবে</summary><p>ধরন ও পরিমাণ বেছে ব্যাগে যোগ করুন। এরপর ব্যাগ থেকে চেকআউটে গিয়ে নাম, ফোন ও ঠিকানা দিন। অর্ডার করার আগে ডেলিভারিসহ মোট খরচ দেখতে পাবেন।</p></details>
+        {zones.length > 0 && <section className="delivery-zones" aria-labelledby="delivery-title">
+          <h2 id="delivery-title"><Truck size={20} /> ডেলিভারি খরচ ও সময়</h2>
+          <ul>{zones.map(zone => <li key={zone.id}><span>{zone.nameBn}</span><strong>{formatTaka(zone.feePaisa)}</strong><small>{formatDeliveryDays(zone.minDays, zone.maxDays)}</small></li>)}</ul>
+        </section>}
+        <details className="product-disclosure"><summary>অর্ডার করবেন যেভাবে</summary><p>ধরন ও পরিমাণ বেছে “এখনই কিনুন” চাপুন, অথবা ব্যাগে যোগ করে পরে চেকআউটে যান। চেকআউটে নাম, ফোন ও ঠিকানা দিন। অর্ডার করার আগে ডেলিভারিসহ মোট খরচ দেখতে পাবেন।</p></details>
         <p className="sku-line">কোড: {variant.sku}</p>
       </div>
     </div>

@@ -122,3 +122,4 @@
 .notes-form textarea { width: 100%; padding: 8px 10px; border: 1px solid #cfd5c6; border-radius: 6px; font-size: 14px; }
 .admin-notes { margin-top: 12px; }
 .admin-notes .note-body { white-space: pre-wrap; overflow-wrap: anywhere; color: #22301f; }
+.admin-gift { margin-top: 10px; padding: 8px 12px; border-radius: 6px; background: #f8f0d8; color: #5e4a12; line-height: 1.8; }

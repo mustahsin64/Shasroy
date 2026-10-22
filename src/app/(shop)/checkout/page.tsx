@@ -5,11 +5,12 @@ import { CheckoutForm } from "@/components/checkout-form";
 import { getCart } from "@/lib/cart";
 import { listDeliveryZones } from "@/lib/checkout";
 import { formatNumberBn, formatTaka } from "@/lib/format";
+import { getShopSettings } from "@/lib/shop-settings";
 
 export const metadata: Metadata = { title: "অর্ডার করুন", robots: { index: false } };
 
 export default async function CheckoutPage() {
-  const [cart, zones] = await Promise.all([getCart(), listDeliveryZones()]);
+  const [cart, zones, settings] = await Promise.all([getCart(), listDeliveryZones(), getShopSettings()]);
   const noZones = zones.length === 0;
   const blocked = cart.lines.length === 0 || cart.hasIssues || noZones;
 
@@ -32,7 +33,7 @@ export default async function CheckoutPage() {
             <span>{formatTaka(line.lineTotalPaisa)}</span>
           </li>)}</ul>
         </details>
-        <CheckoutForm zones={zones} subtotalPaisa={cart.subtotalPaisa} />
+        <CheckoutForm zones={zones} subtotalPaisa={cart.subtotalPaisa} giftWrapFeePaisa={settings.giftWrapEnabled ? settings.giftWrapFeePaisa : null} />
       </>}
     </div>
   </div></div>;

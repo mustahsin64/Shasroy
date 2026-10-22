@@ -26,6 +26,9 @@ export async function listProducts(filters: { query?: string; categorySlug?: str
   const minPrice = sql<number>`min(${productVariants.pricePaisa})`.mapWith(Number);
   const maxPrice = sql<number>`max(${productVariants.pricePaisa})`.mapWith(Number);
   const stock = sql<number>`sum(${productVariants.stockQuantity})`.mapWith(Number);
+  const variantCount = sql<number>`count(${productVariants.id})`.mapWith(Number);
+  // Only meaningful when variantCount is 1: lets the card add that single variant directly.
+  const firstVariantId = sql<string>`min(${productVariants.id}::text)`;
   const imagePath = sql<string | null>`(
     select ${productImages.storagePath} from ${productImages}
     where ${productImages.productId} = ${products.id}
@@ -57,6 +60,8 @@ export async function listProducts(filters: { query?: string; categorySlug?: str
       minPricePaisa: minPrice,
       maxPricePaisa: maxPrice,
       stockQuantity: stock,
+      variantCount,
+      firstVariantId,
       imagePath,
     })
     .from(products)

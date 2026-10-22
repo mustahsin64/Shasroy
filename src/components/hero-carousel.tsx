@@ -15,29 +15,33 @@ type Slide = {
   theme: "photo" | "green" | "gold" | "sand";
 };
 
-const slides: Slide[] = [
-  { slug: "gifts", tab: "উপহার সামগ্রী", eyebrow: "✦ পছন্দের উপহার ✦", title: <>উপহার ছোট হোক,<br /><em>আনন্দটা বড়।</em></>, lines: ["প্রিয় মানুষটির জন্য কিছু খুঁজছেন?", "সাশ্রয়ের দোকানটা ঘুরে দেখুন।"], cta: "উপহার বেছে নিন", image: { src: "/images/gift-hero.png", alt: "সবুজ ও সোনালি ফিতায় মোড়ানো উপহার" }, theme: "photo" },
-  { slug: "kids", tab: "ছোটদের জন্য", eyebrow: "✦ ছোটদের জন্য ✦", title: <>ছোট্ট হাতে<br /><em>বড় আনন্দ।</em></>, lines: ["খেলনা, রঙ পেন্সিল আর", "মজার সব জিনিস।"], cta: "দেখে নিন", image: { src: "/images/kids-hero.png", alt: "ছোটদের খেলনা ও রঙিন জিনিস" }, theme: "photo" },
-  { slug: "stationery", tab: "স্টেশনারি", eyebrow: "✦ নতুন শুরু ✦", title: <>খাতা-কলম থেকে<br /><em>গুছানো টেবিল।</em></>, lines: ["পড়ার টেবিলে একটু নতুনত্ব,", "রোজকার দরকারি জিনিস।"], cta: "স্টেশনারি দেখুন", image: { src: "/images/stationery-hero.png", alt: "খাতা, কলম ও স্টেশনারি" }, theme: "photo" },
-  { slug: "women", tab: "নারীদের ফ্যাশন", eyebrow: "✦ নিজের জন্য ✦", title: <>একটু সাজ,<br /><em>একটু ভালো লাগা।</em></>, lines: ["নিজের পছন্দে, নিজের মতো—", "প্রতিদিনের ছোট ছোঁয়া।"], cta: "সংগ্রহ দেখুন", image: { src: "/images/women-hero.png", alt: "নারীদের ফ্যাশন ও গয়না" }, theme: "photo" },
-  { slug: "kitchen", tab: "রান্নাঘরের জিনিস", eyebrow: "✦ ঘরের প্রয়োজন ✦", title: <>রান্নাঘরের<br /><em>দরকারি সঙ্গী।</em></>, lines: ["কাজে লাগে, গুছিয়ে রাখা সহজ—", "রোজকার রান্নার সঙ্গী।"], cta: "দেখে নিন", image: { src: "/images/kitchen-hero.png", alt: "রান্নাঘরের দরকারি জিনিস" }, theme: "photo" },
-  { slug: "travel", tab: "ভ্রমণের জিনিস", eyebrow: "✦ পথ চলায় ✦", title: <>পথ চলায়<br /><em>সঙ্গে দরকারিটা।</em></>, lines: ["ব্যাগ থেকে ছোট প্রয়োজন,", "ভ্রমণ হোক ঝামেলাহীন।"], cta: "দেখে নিন", image: { src: "/images/travel-hero.png", alt: "ভ্রমণের ব্যাগ ও দরকারি জিনিস" }, theme: "photo" },
-  { slug: "wearable", tab: "পরিধানযোগ্য", eyebrow: "✦ আরামের সঙ্গী ✦", title: <>আরামের পোশাক,<br /><em>রোজের সঙ্গী।</em></>, lines: ["সহজ, আরামদায়ক আর", "পছন্দের মতো।"], cta: "দেখে নিন", image: { src: "/images/wearable-hero.png", alt: "আরামের পোশাক ও পরিধানযোগ্য" }, theme: "photo" },
+// One slide per storefront category; slugs must match `categories.slug`.
+const allSlides: Slide[] = [
+  { slug: "gifts", tab: "জন্মদিনের উপহার", eyebrow: "✦ পছন্দের উপহার ✦", title: <>উপহার ছোট হোক,<br /><em>আনন্দটা বড়।</em></>, lines: ["প্রিয় মানুষটির জন্য কিছু খুঁজছেন?", "সাশ্রয়ের দোকানটা ঘুরে দেখুন।"], cta: "উপহার বেছে নিন", image: { src: "/images/gift-hero.png", alt: "সবুজ ও সোনালি ফিতায় মোড়ানো উপহার" }, theme: "photo" },
+  { slug: "kids", tab: "ছোটদের উপহার", eyebrow: "✦ ছোটদের জন্য ✦", title: <>ছোট্ট হাতে<br /><em>বড় আনন্দ।</em></>, lines: ["খেলনা, রঙ পেন্সিল আর", "মজার সব জিনিস।"], cta: "দেখে নিন", image: { src: "/images/kids-hero.png", alt: "ছোটদের খেলনা ও রঙিন জিনিস" }, theme: "photo" },
+  { slug: "stationery", tab: "খাতা-কলম ও স্টেশনারি", eyebrow: "✦ নতুন শুরু ✦", title: <>খাতা-কলম থেকে<br /><em>গুছানো টেবিল।</em></>, lines: ["পড়ার টেবিলে একটু নতুনত্ব,", "রোজকার দরকারি জিনিস।"], cta: "স্টেশনারি দেখুন", image: { src: "/images/stationery-hero.png", alt: "খাতা, কলম ও স্টেশনারি" }, theme: "photo" },
+  { slug: "women", tab: "নারীদের উপহার", eyebrow: "✦ নিজের জন্য ✦", title: <>একটু সাজ,<br /><em>একটু ভালো লাগা।</em></>, lines: ["নিজের পছন্দে, নিজের মতো—", "প্রতিদিনের ছোট ছোঁয়া।"], cta: "সংগ্রহ দেখুন", image: { src: "/images/women-hero.png", alt: "স্কার্ফ, দুল ও ছোট গয়না" }, theme: "photo" },
+  { slug: "home", tab: "ঘরের প্রয়োজন", eyebrow: "✦ ঘরের প্রয়োজন ✦", title: <>রোজকার কাজে<br /><em>গুছানো ঘর।</em></>, lines: ["প্লাস্টিকের দরকারি জিনিস থেকে", "রান্নাঘরের ছোট সঙ্গী।"], cta: "দেখে নিন", image: { src: "/images/kitchen-hero.png", alt: "বাটি, কৌটা ও রান্নাঘরের দরকারি জিনিস" }, theme: "photo" },
+  { slug: "decor", tab: "শোপিস ও ঘর সাজানো", eyebrow: "✦ ঘর সাজানো ✦", title: <>ঘরের এক কোণে<br /><em>যত্নের ছোঁয়া।</em></>, lines: ["শোপিস, ফুলদানি আর", "ছোট ছোট সাজের জিনিস।"], cta: "ঘর সাজান", image: { src: "/images/decor-hero.png", alt: "ফুলদানি, মোমবাতি ও ছোট শোপিস" }, theme: "photo" },
 ];
 
-export function HeroCarousel() {
+/** Shows only slides whose category is active, so a tab never leads to an unfiltered list. */
+export function HeroCarousel({ categorySlugs }: { categorySlugs: string[] }) {
+  const slides = allSlides.filter(slide => categorySlugs.includes(slide.slug));
   const [index, setIndex] = useState(0);
   const count = slides.length;
   const go = (n: number) => setIndex((prev) => (prev + n + count) % count);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (count < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     timer.current = setInterval(() => setIndex((p) => (p + 1) % count), 6000);
     return () => { if (timer.current) clearInterval(timer.current); };
   }, [count]);
 
   const pause = () => { if (timer.current) { clearInterval(timer.current); timer.current = null; } };
+
+  if (count === 0) return null;
 
   return (
     <div className="hero-carousel" onMouseEnter={pause} onFocusCapture={pause} aria-roledescription="স্লাইডশো">

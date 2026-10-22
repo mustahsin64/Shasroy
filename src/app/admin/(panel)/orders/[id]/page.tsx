@@ -46,6 +46,7 @@ export default async function AdminOrderPage({ params, searchParams }: { params:
         <dl className="admin-totals">
           <div><dt>পণ্যের দাম</dt><dd>{formatTaka(order.subtotalPaisa)}</dd></div>
           <div><dt>ডেলিভারি ({order.deliveryZoneNameBn})</dt><dd>{formatTaka(order.deliveryFeePaisa)}</dd></div>
+          {order.giftWrap && <div><dt>গিফট র‍্যাপ</dt><dd>{formatTaka(order.giftWrapFeePaisa)}</dd></div>}
           {order.discountPaisa > 0 && <div><dt>ছাড়</dt><dd>−{formatTaka(order.discountPaisa)}</dd></div>}
           <div className="grand"><dt>আদায় করতে হবে</dt><dd>{formatTaka(order.totalPaisa)}</dd></div>
         </dl>
@@ -58,6 +59,7 @@ export default async function AdminOrderPage({ params, searchParams }: { params:
           <p><a href={`tel:${order.customerPhone}`}>{order.customerPhone}</a>{order.customerEmail && <> · {order.customerEmail}</>}</p>
           <p className="admin-address">{order.shippingAddress}</p>
           {order.customerNote && <p className="admin-note">নির্দেশনা: {order.customerNote}</p>}
+          {order.giftWrap && <p className="admin-gift"><strong>গিফট র‍্যাপ করতে হবে</strong> · স্লিপে দাম ছাপা হবে না{order.giftMessage && <><br />উপহার বার্তা: “{order.giftMessage}”</>}</p>}
         </section>
 
         <section className="admin-card">

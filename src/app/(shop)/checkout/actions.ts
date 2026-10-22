@@ -6,7 +6,7 @@ import { findCartId, forgetCartCookie } from "@/lib/cart";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { checkoutSchema, placeOrder } from "@/lib/checkout";
 
-const fields = ["customerName", "customerPhone", "customerEmail", "deliveryZoneId", "shippingAddress", "customerNote", "expectedFeePaisa"] as const;
+const fields = ["customerName", "customerPhone", "customerEmail", "deliveryZoneId", "shippingAddress", "customerNote", "expectedFeePaisa", "giftWrap", "giftMessage", "expectedGiftWrapFeePaisa"] as const;
 type Field = (typeof fields)[number];
 
 export type CheckoutState = {
@@ -20,6 +20,8 @@ const formErrors = {
   "zone-unavailable": "এই এলাকায় এখন ডেলিভারি দেওয়া যাচ্ছে না। অন্য এলাকা বেছে নিন।",
   "cart-changed": "ব্যাগের কিছু পণ্যের স্টক বা দাম বদলে গেছে। ব্যাগ দেখে আবার চেষ্টা করুন।",
   "fee-changed": "এই এলাকার ডেলিভারি চার্জ বদলে গেছে। নিচের নতুন মোট দেখে আবার “অর্ডার নিশ্চিত করুন” চাপুন।",
+  "gift-wrap-unavailable": "গিফট র‍্যাপ এখন দেওয়া যাচ্ছে না। গিফট র‍্যাপ বাদ দিয়ে আবার চেষ্টা করুন।",
+  "gift-wrap-fee-changed": "গিফট র‍্যাপের চার্জ বদলে গেছে। নিচের নতুন মোট দেখে আবার “অর্ডার নিশ্চিত করুন” চাপুন।",
   "too-many": "অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।",
 } as const;
 
@@ -52,7 +54,7 @@ export async function placeOrderAction(_prev: CheckoutState, formData: FormData)
   }
   if (!result.ok) {
     // Re-render with the current zones so the summary shows the updated fee.
-    if (result.error === "fee-changed" || result.error === "zone-unavailable") revalidatePath("/checkout");
+    if (result.error === "fee-changed" || result.error === "zone-unavailable" || result.error === "gift-wrap-unavailable" || result.error === "gift-wrap-fee-changed") revalidatePath("/checkout");
     return { formError: formErrors[result.error], fieldErrors: {}, values };
   }
 

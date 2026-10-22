@@ -18,13 +18,12 @@ Each hero carousel slide uses a 3:2 photo. Drop these exact files into `public/i
 
 | File | Category | Subject prompt (right side of frame) |
 | --- | --- | --- |
-| `kids-hero.png` | ছোটদের জন্য | Soft toys, a small teddy, wooden blocks and colour pencils, cheerful but muted. |
-| `stationery-hero.png` | স্টেশনারি | Notebooks, pens, a desk organizer and neatly arranged stationery. |
-| `women-hero.png` | নারীদের ফ্যাশন | Delicate jewellery, a scarf and a few tasteful accessories. |
-| `kitchen-hero.png` | রান্নাঘরের জিনিস | Ceramic bowls, utensils and tidy kitchen essentials. |
-| `travel-hero.png` | ভ্রমণের জিনিস | A small travel bag, pouch and a few travel essentials. |
-| `wearable-hero.png` | পরিধানযোগ্য | Neatly folded comfortable clothing and a soft accessory. |
+| `kids-hero.png` | ছোটদের উপহার (`kids`) | Soft toys, a small teddy, wooden blocks and colour pencils, cheerful but muted. |
+| `stationery-hero.png` | খাতা-কলম ও স্টেশনারি (`stationery`) | Notebooks, pens, a desk organizer and neatly arranged stationery. |
+| `women-hero.png` | নারীদের উপহার (`women`) | Delicate jewellery, a scarf and a few tasteful accessories. |
+| `kitchen-hero.png` | ঘরের প্রয়োজন (`home`) | Ceramic bowls, a storage container, utensils and tidy kitchen essentials. |
+| `decor-hero.png` | শোপিস ও ঘর সাজানো (`decor`) | A ribbed vase with dried flowers, a wooden mini house, a candle and a rattan tray. |
 
 ### Current category images
 
-The six category heroes were generated with Figma's image generation (model `gpt-image-2.5-sunburst`, 1536×1024) in the Figma file "Shasroy hero images". Each prompt followed the `gift-hero.png` recipe above (ivory linen, forest green + golden ochre + cream, left 45% empty, no text) with the subject from the table. Like the gift hero, they are illustrative, not photographs of actual stock.
+The category heroes (one per category slug; the carousel hides slides whose category is not active) were generated with Figma's image generation (model `gpt-image-2.5-sunburst`, 1536×1024) in the Figma file "Shasroy hero images". Each prompt followed the `gift-hero.png` recipe above (ivory linen, forest green + golden ochre + cream, left 45% empty, no text) with the subject from the table. Like the gift hero, they are illustrative, not photographs of actual stock.

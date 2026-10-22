@@ -20,7 +20,10 @@ export function AddToCartForm({ variantId, maxQuantity }: { variantId: string; m
         <button type="button" aria-label="পরিমাণ বাড়ান" disabled={soldOut || pending || quantity >= maxQuantity} onClick={() => setQuantity(quantity + 1)}>+</button>
       </div>
     </div>
-    <button type="submit" disabled={soldOut || pending}>{soldOut ? "স্টক শেষ" : pending ? "যোগ হচ্ছে…" : "ব্যাগে যোগ করুন"}</button>
+    <div className="purchase-buttons">
+      <button type="submit" name="intent" value="buy" className="buy-now" disabled={soldOut || pending}>{soldOut ? "স্টক শেষ" : "এখনই কিনুন"}</button>
+      <button type="submit" name="intent" value="add" className="add-only" disabled={soldOut || pending}>{pending ? "যোগ হচ্ছে…" : "ব্যাগে যোগ করুন"}</button>
+    </div>
     <p role="status" aria-live="polite" className={`cart-message cart-message-${state.status}`}>
       {state.message}{state.status === "success" && <> <Link href="/cart">ব্যাগ দেখুন</Link></>}
     </p>

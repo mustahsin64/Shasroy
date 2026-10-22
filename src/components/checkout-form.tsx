@@ -8,10 +8,13 @@ type Zone = { id: string; nameBn: string; feePaisa: number; minDays: number; max
 
 const initialState: CheckoutState = { fieldErrors: {}, values: {} };
 
-export function CheckoutForm({ zones, subtotalPaisa }: { zones: Zone[]; subtotalPaisa: number }) {
+/** `giftWrapFeePaisa` is null when gift wrap is switched off in admin. */
+export function CheckoutForm({ zones, subtotalPaisa, giftWrapFeePaisa }: { zones: Zone[]; subtotalPaisa: number; giftWrapFeePaisa: number | null }) {
   const [state, formAction, pending] = useActionState(placeOrderAction, initialState);
   const [zoneId, setZoneId] = useState(state.values.deliveryZoneId ?? "");
   const zone = zones.find(z => z.id === zoneId);
+  const [giftWrap, setGiftWrap] = useState(state.values.giftWrap === "on" && giftWrapFeePaisa !== null);
+  const giftFee = giftWrap && giftWrapFeePaisa !== null ? giftWrapFeePaisa : 0;
   const errors = state.fieldErrors;
 
   const field = (name: keyof CheckoutState["values"], label: string, input: React.ReactNode, hint?: string) => <div className={`checkout-field${errors[name] ? " has-error" : ""}`}>
@@ -40,6 +43,18 @@ export function CheckoutForm({ zones, subtotalPaisa }: { zones: Zone[]; subtotal
           {errors.deliveryZoneId && <p className="field-error" id="deliveryZoneId-error">{errors.deliveryZoneId}</p>}
         </fieldset>
         {field("shippingAddress", "পুরো ঠিকানা *", <textarea id="shippingAddress" name="shippingAddress" autoComplete="street-address" rows={3} required maxLength={500} placeholder="বাসা/ফ্ল্যাট, রাস্তা, এলাকা, থানা, জেলা" defaultValue={state.values.shippingAddress} aria-invalid={!!errors.shippingAddress} aria-describedby={describedBy("shippingAddress")} />)}
+        {giftWrapFeePaisa !== null && <div className="checkout-field gift-option">
+          <label className="gift-toggle">
+            <input type="checkbox" name="giftWrap" checked={giftWrap} onChange={event => setGiftWrap(event.target.checked)} />
+            <span><strong>গিফট র‍্যাপ করে দিন</strong><small>উপহারের মতো মুড়িয়ে পাঠানো হবে; স্লিপে দাম থাকবে না।</small></span>
+            <b>+{formatTaka(giftWrapFeePaisa)}</b>
+          </label>
+          {giftWrap && <div className={`gift-message${errors.giftMessage ? " has-error" : ""}`}>
+            <label htmlFor="giftMessage">উপহার বার্তা (ঐচ্ছিক)</label>
+            <textarea id="giftMessage" name="giftMessage" rows={2} maxLength={200} placeholder="যেমন: শুভ জন্মদিন, মা!" defaultValue={state.values.giftMessage} aria-invalid={!!errors.giftMessage} aria-describedby={describedBy("giftMessage")} />
+            {errors.giftMessage ? <p className="field-error" id="giftMessage-error">{errors.giftMessage}</p> : <p className="field-hint">ছোট একটি কার্ডে লিখে দেওয়া হবে (২০০ অক্ষরের মধ্যে)।</p>}
+          </div>}
+        </div>}
         {field("customerNote", "বিশেষ নির্দেশনা (ঐচ্ছিক)", <textarea id="customerNote" name="customerNote" rows={2} maxLength={500} placeholder="যেমন: বিকেলে ডেলিভারি দিলে ভালো হয়" defaultValue={state.values.customerNote} aria-invalid={!!errors.customerNote} aria-describedby={describedBy("customerNote")} />)}
       </div>
     </div>
@@ -50,9 +65,11 @@ export function CheckoutForm({ zones, subtotalPaisa }: { zones: Zone[]; subtotal
       <dl>
         <div><dt>পণ্যের দাম</dt><dd>{formatTaka(subtotalPaisa)}</dd></div>
         <div><dt>ডেলিভারি চার্জ</dt><dd className={zone ? undefined : "muted"}>{zone ? formatTaka(zone.feePaisa) : "এলাকা বেছে নিন"}</dd></div>
-        <div className="summary-total"><dt>মোট</dt><dd>{formatTaka(subtotalPaisa + (zone?.feePaisa ?? 0))}</dd></div>
+        {giftWrap && <div><dt>গিফট র‍্যাপ</dt><dd>{formatTaka(giftFee)}</dd></div>}
+        <div className="summary-total"><dt>মোট</dt><dd>{formatTaka(subtotalPaisa + (zone?.feePaisa ?? 0) + giftFee)}</dd></div>
       </dl>
       <input type="hidden" name="expectedFeePaisa" value={zone?.feePaisa ?? ""} />
+      <input type="hidden" name="expectedGiftWrapFeePaisa" value={giftWrap ? giftFee : ""} />
       <button type="submit" className="checkout-submit" disabled={pending}>{pending ? "অর্ডার হচ্ছে…" : "অর্ডার নিশ্চিত করুন"}</button>
       <p className="summary-note">অর্ডার নিশ্চিত করার সময় দাম ও স্টক আবার যাচাই করা হবে।</p>
     </aside>

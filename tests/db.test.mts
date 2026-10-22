@@ -23,6 +23,7 @@ const N = await import("@/lib/admin/order-notes");
 const D = await import("@/lib/admin/delivery");
 const I = await import("@/lib/admin/inventory");
 const U = await import("@/lib/admin/users");
+const S = await import("@/lib/admin/settings");
 const { placeOrder, getOrderConfirmation } = await import("@/lib/checkout");
 
 const TAG = `ZZTEST${Date.now()}`;
@@ -51,7 +52,7 @@ async function makeAdmin(label: string, role: "owner" | "manager" | "staff") {
   return row;
 }
 
-async function order(name: string, qty = 1, opts: { phone?: string; zoneId?: string; fee?: number } = {}) {
+async function order(name: string, qty = 1, opts: { phone?: string; zoneId?: string; fee?: number; giftWrap?: boolean; giftMessage?: string | null; giftFee?: number | null } = {}) {
   const [cart] = await db.insert(schema.carts).values({ tokenHash: `${TAG}-${Math.random()}` }).returning();
   await db.insert(schema.cartItems).values({ cartId: cart.id, variantId: ctx.variantId, quantity: qty });
   const zoneId = opts.zoneId ?? ctx.zone.id;
@@ -63,6 +64,9 @@ async function order(name: string, qty = 1, opts: { phone?: string; zoneId?: str
     shippingAddress: "House 1, Road 2, Test Area, Dhaka",
     customerNote: null,
     expectedFeePaisa: opts.fee ?? (await db.select().from(schema.deliveryZones).where(eq(schema.deliveryZones.id, zoneId)))[0].feePaisa,
+    giftWrap: opts.giftWrap ?? false,
+    giftMessage: opts.giftMessage ?? null,
+    expectedGiftWrapFeePaisa: opts.giftFee ?? null,
   });
   return result;
 }
@@ -327,5 +331,81 @@ describe("7.6 owner-only admin management", () => {
     assert.equal(results.filter(r => r.ok).length, 1, JSON.stringify(results));
     const rows = await db.select().from(schema.adminUsers).where(inArray(schema.adminUsers.id, [a.id, b.id]));
     assert.equal(rows.filter(r => r.isActive).length, 1);
+  });
+});
+
+describe("gift wrap", () => {
+  const settings = async () => (await db.select().from(schema.shopSettings).limit(1))[0];
+  // Puts the shared settings row in a known state and returns a restore function.
+  async function withSettings(enabled: boolean, feePaisa: number) {
+    const original = await settings();
+    assert.ok(original, "shop_settings row missing: run npm run db:migrate");
+    await db.update(schema.shopSettings).set({ giftWrapEnabled: enabled, giftWrapFeePaisa: feePaisa }).where(eq(schema.shopSettings.id, original.id));
+    return () => db.update(schema.shopSettings).set({ giftWrapEnabled: original.giftWrapEnabled, giftWrapFeePaisa: original.giftWrapFeePaisa }).where(eq(schema.shopSettings.id, original.id));
+  }
+
+  it("charges the gift wrap fee once per order and stores the message", async () => {
+    const restore = await withSettings(true, 3000);
+    try {
+      const placed = await order("Gift", 2, { giftWrap: true, giftMessage: "শুভ জন্মদিন", giftFee: 3000 });
+      assert.ok(placed.ok);
+      if (!placed.ok) return;
+      const row = (await db.select().from(schema.orders).where(eq(schema.orders.id, placed.orderId)))[0];
+      assert.equal(row.giftWrap, true);
+      assert.equal(row.giftWrapFeePaisa, 3000);
+      assert.equal(row.giftMessage, "শুভ জন্মদিন");
+      assert.equal(row.totalPaisa, PRICE * 2 + row.deliveryFeePaisa + 3000);
+      const print = await O.getOrderForPrint(placed.orderId);
+      assert.equal(print!.giftWrap, true);
+      assert.equal(O.collectionState(print!).kind, "collect");
+    } finally {
+      await restore();
+    }
+  });
+  it("ignores a gift message without gift wrap and charges nothing extra", async () => {
+    const placed = await order("NoGift", 1, { giftWrap: false, giftMessage: "should be dropped" });
+    assert.ok(placed.ok);
+    if (!placed.ok) return;
+    const row = (await db.select().from(schema.orders).where(eq(schema.orders.id, placed.orderId)))[0];
+    assert.equal(row.giftWrapFeePaisa, 0);
+    assert.equal(row.giftMessage, null);
+    assert.equal(row.totalPaisa, PRICE + row.deliveryFeePaisa);
+  });
+  it("refuses a stale gift wrap fee or a disabled option without touching stock", async () => {
+    const before = await stock();
+    let restore = await withSettings(true, 5000);
+    try {
+      assert.deepEqual(await order("GiftStale", 1, { giftWrap: true, giftFee: 3000 }), { ok: false, error: "gift-wrap-fee-changed" });
+    } finally {
+      await restore();
+    }
+    restore = await withSettings(false, 3000);
+    try {
+      assert.deepEqual(await order("GiftOff", 1, { giftWrap: true, giftFee: 3000 }), { ok: false, error: "gift-wrap-unavailable" });
+      assert.ok((await order("GiftOffPlain", 1)).ok, "orders without gift wrap still work when it is off");
+    } finally {
+      await restore();
+    }
+    assert.equal(await stock(), before - 1);
+  });
+  it("database rejects a gift fee or message on an order that is not gift wrapped", async () => {
+    const placed = await order("GiftCheck", 1);
+    assert.ok(placed.ok);
+    if (!placed.ok) return;
+    await assert.rejects(db.update(schema.orders).set({ giftWrapFeePaisa: 3000, totalPaisa: sql`${schema.orders.totalPaisa} + 3000` }).where(eq(schema.orders.id, placed.orderId)));
+    await assert.rejects(db.update(schema.orders).set({ giftMessage: "x" }).where(eq(schema.orders.id, placed.orderId)));
+  });
+  it("settings edits use optimistic concurrency and are audited", async () => {
+    const original = await settings();
+    try {
+      assert.deepEqual(await S.updateGiftWrapSettings({ giftWrapEnabled: true, giftWrapFeePaisa: 4000 }, original.updatedAt.getTime(), ctx.manager.id), { ok: true });
+      assert.equal((await settings()).giftWrapFeePaisa, 4000);
+      assert.equal((await S.updateGiftWrapSettings({ giftWrapEnabled: true, giftWrapFeePaisa: 4500 }, original.updatedAt.getTime(), ctx.manager.id)).ok, false, "stale form");
+      const audit = await db.select().from(schema.adminAuditEvents).where(and(eq(schema.adminAuditEvents.actorId, ctx.manager.id), eq(schema.adminAuditEvents.action, "gift_wrap_update")));
+      assert.equal(audit.length, 1);
+      assert.deepEqual(audit[0].after, { giftWrapEnabled: true, giftWrapFeePaisa: 4000 });
+    } finally {
+      await db.update(schema.shopSettings).set({ giftWrapEnabled: original.giftWrapEnabled, giftWrapFeePaisa: original.giftWrapFeePaisa }).where(eq(schema.shopSettings.id, original.id));
+    }
   });
 });

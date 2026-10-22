@@ -54,6 +54,7 @@ export const adminAuditAction = pgEnum("admin_audit_action", [
   "admin_activate",
   "admin_deactivate",
   "admin_role_change",
+  "gift_wrap_update",
 ]);
 
 export const categories = pgTable(
@@ -155,6 +156,22 @@ export const deliveryZones = pgTable(
   ],
 ).enableRLS();
 
+// Shop-wide settings: exactly one row (enforced by the unique, always-true `singleton`).
+export const shopSettings = pgTable(
+  "shop_settings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    singleton: boolean("singleton").notNull().default(true).unique(),
+    giftWrapEnabled: boolean("gift_wrap_enabled").notNull().default(true),
+    giftWrapFeePaisa: integer("gift_wrap_fee_paisa").notNull().default(3000),
+    ...timestamps,
+  },
+  (t) => [
+    check("shop_settings_singleton", sql`${t.singleton}`),
+    check("shop_settings_gift_fee_non_negative", sql`${t.giftWrapFeePaisa} >= 0`),
+  ],
+).enableRLS();
+
 export const adminUsers = pgTable(
   "admin_users",
   {
@@ -191,6 +208,10 @@ export const orders = pgTable(
     // Snapshot so later zone edits do not rewrite order history.
     deliveryZoneNameBn: text("delivery_zone_name_bn").notNull(),
     customerNote: text("customer_note"),
+    giftWrap: boolean("gift_wrap").notNull().default(false),
+    // Snapshot of the fee charged; 0 when not gift wrapped.
+    giftWrapFeePaisa: integer("gift_wrap_fee_paisa").notNull().default(0),
+    giftMessage: text("gift_message"),
     subtotalPaisa: integer("subtotal_paisa").notNull(),
     deliveryFeePaisa: integer("delivery_fee_paisa").notNull(),
     discountPaisa: integer("discount_paisa").notNull().default(0),
@@ -204,11 +225,15 @@ export const orders = pgTable(
     index("orders_customer_phone_idx").on(t.customerPhone),
     check(
       "orders_amounts_non_negative",
-      sql`${t.subtotalPaisa} >= 0 and ${t.deliveryFeePaisa} >= 0 and ${t.discountPaisa} >= 0`,
+      sql`${t.subtotalPaisa} >= 0 and ${t.deliveryFeePaisa} >= 0 and ${t.discountPaisa} >= 0 and ${t.giftWrapFeePaisa} >= 0`,
     ),
     check(
       "orders_total_matches",
-      sql`${t.totalPaisa} = ${t.subtotalPaisa} + ${t.deliveryFeePaisa} - ${t.discountPaisa} and ${t.totalPaisa} >= 0`,
+      sql`${t.totalPaisa} = ${t.subtotalPaisa} + ${t.deliveryFeePaisa} + ${t.giftWrapFeePaisa} - ${t.discountPaisa} and ${t.totalPaisa} >= 0`,
+    ),
+    check(
+      "orders_gift_consistent",
+      sql`(${t.giftWrap} or (${t.giftWrapFeePaisa} = 0 and ${t.giftMessage} is null)) and (${t.giftMessage} is null or char_length(${t.giftMessage}) between 1 and 200)`,
     ),
   ],
 ).enableRLS();

@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { addToCart, MAX_QUANTITY_PER_LINE, removeCartItem, setCartItemQuantity } from "@/lib/cart";
 import { formatNumberBn } from "@/lib/format";
@@ -20,6 +21,8 @@ export async function addToCartAction(_prev: AddToCartState, formData: FormData)
   if (!result.ok) {
     return { status: "error", message: result.error === "out-of-stock" ? "দুঃখিত, এটি এখন স্টকে নেই।" : "এই পণ্যটি এখন পাওয়া যাচ্ছে না।" };
   }
+  // "এখনই কিনুন" adds the item and goes straight to checkout.
+  if (formData.get("intent") === "buy") redirect("/checkout");
   refresh();
   return {
     status: "success",

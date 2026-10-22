@@ -22,6 +22,13 @@
       "when": 1792466011310,
       "tag": "0002_phase7_notes_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792644130916,
+      "tag": "0003_gift_wrap_settings",
+      "breakpoints": true
     }
   ]
 }

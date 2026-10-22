@@ -34,6 +34,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
           <dl className="confirm-totals">
             <div><dt>পণ্যের দাম</dt><dd>{formatTaka(order.subtotalPaisa)}</dd></div>
             <div><dt>ডেলিভারি চার্জ ({order.deliveryZoneNameBn})</dt><dd>{formatTaka(order.deliveryFeePaisa)}</dd></div>
+            {order.giftWrap && <div><dt>গিফট র‍্যাপ</dt><dd>{formatTaka(order.giftWrapFeePaisa)}</dd></div>}
             {order.discountPaisa > 0 && <div><dt>ছাড়</dt><dd>−{formatTaka(order.discountPaisa)}</dd></div>}
             <div className="summary-total"><dt>পণ্য হাতে পেয়ে দেবেন</dt><dd>{formatTaka(order.totalPaisa)}</dd></div>
           </dl>
@@ -41,6 +42,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
         <section>
           <h2>ডেলিভারির ঠিকানা</h2>
           <p className="confirm-address">{order.shippingAddress}</p>
+          {order.giftWrap && <p className="confirm-gift">উপহার হিসেবে মুড়িয়ে পাঠানো হবে।{order.giftMessage && <> বার্তা: “{order.giftMessage}”</>}</p>}
           <p className="summary-note">পেমেন্ট: ক্যাশ অন ডেলিভারি। অর্ডার নম্বরটি সংরক্ষণ করে রাখুন।</p>
         </section>
       </div>
