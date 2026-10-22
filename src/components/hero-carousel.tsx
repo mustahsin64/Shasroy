@@ -1,5 +1,5 @@
 "use client";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -29,30 +29,47 @@ const allSlides: Slide[] = [
 export function HeroCarousel({ categorySlugs }: { categorySlugs: string[] }) {
   const slides = allSlides.filter(slide => categorySlugs.includes(slide.slug));
   const [index, setIndex] = useState(0);
+  const [userPaused, setUserPaused] = useState(false);
+  const [interactionPaused, setInteractionPaused] = useState(false);
   const count = slides.length;
   const go = (n: number) => setIndex((prev) => (prev + n + count) % count);
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
-    if (count < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    timer.current = setInterval(() => setIndex((p) => (p + 1) % count), 6000);
-    return () => { if (timer.current) clearInterval(timer.current); };
-  }, [count]);
+    if (count < 2 || userPaused || interactionPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = setInterval(() => setIndex((p) => (p + 1) % count), 6000);
+    return () => clearInterval(timer);
+  }, [count, interactionPaused, userPaused]);
 
-  const pause = () => { if (timer.current) { clearInterval(timer.current); timer.current = null; } };
+  const selectTab = (next: number, focus = false) => {
+    const target = (next + count) % count;
+    setIndex(target);
+    if (focus) tabRefs.current[target]?.focus();
+  };
+
+  const onTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, tabIndex: number) => {
+    const next = event.key === "ArrowRight" ? tabIndex + 1
+      : event.key === "ArrowLeft" ? tabIndex - 1
+      : event.key === "Home" ? 0
+      : event.key === "End" ? count - 1
+      : null;
+    if (next === null) return;
+    event.preventDefault();
+    selectTab(next, true);
+  };
 
   if (count === 0) return null;
 
   return (
-    <div className="hero-carousel" onMouseEnter={pause} onFocusCapture={pause} aria-roledescription="স্লাইডশো">
+    <div className="hero-carousel" onMouseEnter={() => setInteractionPaused(true)} onMouseLeave={() => setInteractionPaused(false)} onFocusCapture={() => setInteractionPaused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setInteractionPaused(false); }} aria-roledescription="স্লাইডশো" aria-label="পণ্যের বিভাগ">
       <div className="hero-tabs" role="tablist" aria-label="পণ্যের বিভাগ">
         {slides.map((slide, i) => (
-          <button key={slide.slug} type="button" role="tab" aria-selected={i === index} className={i === index ? "on" : ""} onClick={() => setIndex(i)}>{slide.tab}</button>
+          <button ref={node => { tabRefs.current[i] = node; }} key={slide.slug} id={`hero-tab-${slide.slug}`} type="button" role="tab" aria-controls={`hero-panel-${slide.slug}`} aria-selected={i === index} tabIndex={i === index ? 0 : -1} className={i === index ? "on" : ""} onKeyDown={event => onTabKeyDown(event, i)} onClick={() => setIndex(i)}>{slide.tab}</button>
         ))}
       </div>
       <div className="hero-track" style={{ transform: `translateX(-${index * 100}%)` }}>
         {slides.map((slide, i) => (
-          <article key={slide.slug} className={`hero-slide hero-${slide.theme}`} aria-hidden={i !== index} role="group" aria-roledescription="স্লাইড" aria-label={`${i + 1} / ${count}`}>
+          <article key={slide.slug} id={`hero-panel-${slide.slug}`} className={`hero-slide hero-${slide.theme}`} aria-hidden={i !== index} aria-labelledby={`hero-tab-${slide.slug}`} role="tabpanel" inert={i !== index}>
             {slide.image && <Image src={slide.image.src} alt={slide.image.alt} fill preload={i === 0} sizes="100vw" className="hero-photo" />}
             <div className="hero-copy">
               <p className="eyebrow">{slide.eyebrow}</p>
@@ -65,6 +82,7 @@ export function HeroCarousel({ categorySlugs }: { categorySlugs: string[] }) {
       </div>
       <button type="button" className="hero-arrow hero-prev" onClick={() => go(-1)} aria-label="আগের স্লাইড"><ChevronLeft size={22} /></button>
       <button type="button" className="hero-arrow hero-next" onClick={() => go(1)} aria-label="পরের স্লাইড"><ChevronRight size={22} /></button>
+      <button type="button" className="hero-pause" onClick={() => setUserPaused(value => !value)} aria-pressed={userPaused} aria-label={userPaused ? "স্লাইডশো চালু করুন" : "স্লাইডশো থামান"}>{userPaused ? <Play size={18} /> : <Pause size={18} />}</button>
       <div className="hero-dots" aria-hidden="true">
         {slides.map((slide, i) => <span key={slide.slug} className={i === index ? "on" : ""} />)}
       </div>

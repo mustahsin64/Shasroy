@@ -18,7 +18,8 @@ export function NewArrivals({ products }: { products: ProductSummary[] }) {
     </li>)}
   </ul>;
   return <section className="belt" aria-label="নতুন পণ্য">
-    <div className="container-shell"><div className="belt-head"><span>✧</span><h2>নতুন এসেছে</h2></div></div>
+    <input className="visually-hidden belt-motion-toggle" type="checkbox" id="belt-motion-toggle" />
+    <div className="container-shell"><div className="belt-head"><div><span>✧</span><h2>নতুন এসেছে</h2></div><label className="belt-motion-control" htmlFor="belt-motion-toggle"><span className="belt-pause-text">থামান</span><span className="belt-play-text">চালান</span></label></div></div>
     <div className="belt-window"><div className="belt-track">{render(false)}{render(true)}</div><div className="belt-rail" /></div>
   </section>;
 }
