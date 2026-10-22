@@ -5,17 +5,32 @@ import { notFound } from "next/navigation";
 import { AddToCartForm } from "@/components/add-to-cart-form";
 import { ProductGallery } from "@/components/product-gallery";
 import { ProductImage } from "@/components/product-card";
+import { JsonLd } from "@/components/json-ld";
 import { MAX_QUANTITY_PER_LINE } from "@/lib/cart";
 import { getProductBySlug, listProducts } from "@/lib/catalog";
 import { formatTaka, stockLabel } from "@/lib/format";
+import { absoluteUrl } from "@/lib/site";
+import { productImageUrl } from "@/lib/storage";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ variant?: string | string[] }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
-  if (!product) return { title: "পণ্য পাওয়া যায়নি" };
-  return { title: product.nameBn, description: product.descriptionBn ?? undefined };
+  if (!product) return { title: "পণ্য পাওয়া যায়নি", robots: { index: false } };
+  const image = product.images[0]?.storagePath ? productImageUrl(product.images[0].storagePath) : undefined;
+  return {
+    title: product.nameBn,
+    description: product.descriptionBn ?? undefined,
+    alternates: { canonical: `/products/${product.slug}` },
+    openGraph: {
+      type: "website",
+      title: product.nameBn,
+      description: product.descriptionBn ?? undefined,
+      url: `/products/${product.slug}`,
+      images: image ? [image] : undefined,
+    },
+  };
 }
 
 export default async function ProductPage({ params, searchParams }: Props) {
@@ -31,7 +46,26 @@ export default async function ProductPage({ params, searchParams }: Props) {
   const variantImageIndex = product.images.findIndex(image => image.variantId === variant.id);
   const related = (await listProducts({ categorySlug: product.category.slug })).filter(item => item.id !== product.id).slice(0, 2);
 
-  return <div className="shop-background product-page"><div className="container-shell">
+  const prices = product.variants.map(v => v.pricePaisa);
+  const productLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.nameBn,
+    description: product.descriptionBn ?? undefined,
+    category: product.category.nameBn,
+    image: product.images[0]?.storagePath ? productImageUrl(product.images[0].storagePath) : undefined,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "BDT",
+      lowPrice: (Math.min(...prices) / 100).toFixed(2),
+      highPrice: (Math.max(...prices) / 100).toFixed(2),
+      offerCount: product.variants.length,
+      availability: variant.stockQuantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      url: absoluteUrl(`/products/${product.slug}`),
+    },
+  };
+
+  return <div className="shop-background product-page"><div className="container-shell"><JsonLd data={productLd} />
     <nav className="breadcrumb" aria-label="অবস্থান">
       <Link href="/">শুরুর পাতা</Link><ChevronRight size={13} />
       <Link href={`/?category=${product.category.slug}#products`}>{product.category.nameBn}</Link><ChevronRight size={13} />

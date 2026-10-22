@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { findCartId, forgetCartCookie } from "@/lib/cart";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { checkoutSchema, placeOrder } from "@/lib/checkout";
 
 const fields = ["customerName", "customerPhone", "customerEmail", "deliveryZoneId", "shippingAddress", "customerNote", "expectedFeePaisa"] as const;
@@ -19,6 +20,7 @@ const formErrors = {
   "zone-unavailable": "এই এলাকায় এখন ডেলিভারি দেওয়া যাচ্ছে না। অন্য এলাকা বেছে নিন।",
   "cart-changed": "ব্যাগের কিছু পণ্যের স্টক বা দাম বদলে গেছে। ব্যাগ দেখে আবার চেষ্টা করুন।",
   "fee-changed": "এই এলাকার ডেলিভারি চার্জ বদলে গেছে। নিচের নতুন মোট দেখে আবার “অর্ডার নিশ্চিত করুন” চাপুন।",
+  "too-many": "অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।",
 } as const;
 
 export async function placeOrderAction(_prev: CheckoutState, formData: FormData): Promise<CheckoutState> {
@@ -33,6 +35,10 @@ export async function placeOrderAction(_prev: CheckoutState, formData: FormData)
     }
     return { fieldErrors, values };
   }
+
+  // Throttle order attempts per client: 10 per 5 minutes.
+  const limit = rateLimit(`checkout:${await clientIp()}`, 10, 5 * 60 * 1000);
+  if (!limit.ok) return { formError: formErrors["too-many"], fieldErrors: {}, values };
 
   const cartId = await findCartId();
   if (!cartId) return { formError: formErrors["empty-cart"], fieldErrors: {}, values };

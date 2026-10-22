@@ -455,3 +455,12 @@ a:hover { color: #94701e; }
 .hero-split .hero-copy { width: 46%; padding: 92px 44px 84px; }
 @media(max-width:1100px) { .hero-split .hero-copy { width: 56%; padding: 84px 32px 84px; } }
 @media(max-width:760px) { .hero-split .hero-copy { width: 88%; padding: 70px 22px 84px; } }
+
+/* Status pages (404 / error). */
+.status-page { padding: 80px 0 100px; text-align: center; }
+.status-page h1 { font-size: clamp(26px,4vw,38px); font-weight: 650; color: var(--primary); }
+.status-page p { margin-top: 12px; color: #617155; font-size: 17px; }
+.status-actions { display: flex; gap: 12px; justify-content: center; margin-top: 26px; flex-wrap: wrap; }
+.status-link { display: inline-flex; align-items: center; margin-top: 26px; padding: 12px 22px; border-radius: 8px; background: var(--primary); color: #fff; font-weight: 600; cursor: pointer; }
+.status-actions .status-link { margin-top: 0; }
+.status-link-ghost { background: transparent; color: var(--primary); border: 1px solid #cdd7c2; }

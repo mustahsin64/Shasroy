@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db, schema } from "@/db";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type LoginState = { status: "idle" | "sent" | "error"; message: string };
@@ -15,6 +16,10 @@ export async function sendLoginLinkAction(_prev: LoginState, formData: FormData)
   const parsed = z.email().safeParse(String(formData.get("email") ?? "").trim().toLowerCase());
   if (!parsed.success) return { status: "error", message: "সঠিক ইমেইল দিন।" };
   const email = parsed.data;
+
+  // Throttle login-link requests per client: 5 per 10 minutes.
+  const limit = rateLimit(`login:${await clientIp()}`, 5, 10 * 60 * 1000);
+  if (!limit.ok) return { status: "error", message: "অনেকবার চেষ্টা হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।" };
 
   // Only registered, active admins get a link; the response is identical either way.
   const admin = await db.query.adminUsers.findFirst({
