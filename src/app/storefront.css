@@ -345,7 +345,9 @@ a:hover { color: #94701e; }
 }
 
 /* Header: centred logo, icon actions and a centred link row. */
-.store-header { position: sticky; top: 0; z-index: 30; background: #fff; border-bottom: 1px solid #e4e7dc; }
+/* Only the nav row sticks; the announcement bar and logo row scroll away. */
+.store-header { position: relative; z-index: 31; background: #fff; }
+.cp-nav { position: sticky; top: 0; z-index: 30; background: #fff; border-bottom: 1px solid #e4e7dc; font-size: 17px; line-height: 1.85; }
 .announce-bar { background: var(--primary); color: #f3e7bd; text-align: center; font-size: 15px; line-height: 1.6; padding: 6px 16px; letter-spacing: .02em; }
 .cp-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; padding-block: 10px; }
 .cp-left, .cp-right { display: flex; align-items: center; gap: 18px; min-width: 0; }
@@ -455,6 +457,11 @@ a:hover { color: #94701e; }
 .hero-split .hero-copy { width: 46%; padding: 92px 44px 84px; }
 @media(max-width:1100px) { .hero-split .hero-copy { width: 56%; padding: 84px 32px 84px; } }
 @media(max-width:760px) { .hero-split .hero-copy { width: 88%; padding: 70px 22px 84px; } }
+/* Grow the hero with wide screens so the 3:2 photos are not cropped to a thin strip. */
+@media(min-width:1200px) { .hero-carousel, .hero-track, .hero-slide { min-height: clamp(500px, 37vw, 660px); } .hero-split .hero-copy { padding-top: clamp(104px, 9vw, 150px); } }
+/* Breathing room between the new-arrivals belt and the hero. */
+.shop-background { padding-top: 44px; }
+@media(max-width:650px) { .shop-background { padding-top: 24px; } }
 
 /* Status pages (404 / error). */
 .status-page { padding: 80px 0 100px; text-align: center; }

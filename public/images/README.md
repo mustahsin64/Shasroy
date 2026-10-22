@@ -24,3 +24,7 @@ Each hero carousel slide uses a 3:2 photo. Drop these exact files into `public/i
 | `kitchen-hero.png` | রান্নাঘরের জিনিস | Ceramic bowls, utensils and tidy kitchen essentials. |
 | `travel-hero.png` | ভ্রমণের জিনিস | A small travel bag, pouch and a few travel essentials. |
 | `wearable-hero.png` | পরিধানযোগ্য | Neatly folded comfortable clothing and a soft accessory. |
+
+### Current category images
+
+The six category heroes were generated with Figma's image generation (model `gpt-image-2.5-sunburst`, 1536×1024) in the Figma file "Shasroy hero images". Each prompt followed the `gift-hero.png` recipe above (ivory linen, forest green + golden ochre + cream, left 45% empty, no text) with the subject from the table. Like the gift hero, they are illustrative, not photographs of actual stock.
