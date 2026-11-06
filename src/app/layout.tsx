@@ -5,6 +5,7 @@ import { siteUrl } from "@/lib/site";
 
 import "./globals.css";
 import "./storefront.css";
+import "@fontsource-variable/inter";
 import "@fontsource-variable/noto-serif-bengali";
 
 export const metadata: Metadata = {

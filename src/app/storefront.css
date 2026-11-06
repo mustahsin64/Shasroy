@@ -536,3 +536,106 @@ a:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible { outline: 
 .sort-select select:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 
 .category-cta { margin-top: 20px; text-align: center; }
+
+/* ============================================================
+   Shopifi-inspired light/cream theme (single transactional track)
+   Black ink + pill buttons + aloe/pistachio accents + hairlines.
+   ============================================================ */
+
+/* Canvas */
+.shop-background { background: var(--canvas-cream); background-image: none; }
+.product-page { background: var(--canvas-cream); }
+
+/* Type: lighter display headings, Inter for Latin via body stack */
+.home-hero h1 { font-weight: 450; letter-spacing: 0; }
+.section-title h2, .products-head h2, .ideas-lead h2, .category-section .section-title h2 { font-weight: 500; }
+.section-title > span { color: var(--shade-40); }
+.dotted-rule { border-color: var(--hairline); }
+a:hover { color: var(--shade-60); }
+
+/* Announcement + nav */
+.announce-bar { background: var(--primary); color: #fff; letter-spacing: .02em; }
+.cp-nav a { color: var(--foreground); }
+.cp-nav a::after, .cp-nav a[aria-current]::after { background: var(--foreground); }
+
+/* Buttons → pill vocabulary */
+.btn-primary { border-radius: 9999px; background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--shade-70); color: #fff; }
+.btn-link { color: var(--foreground); border-bottom-color: var(--foreground); }
+.quick-add button, .quick-add-choose { border-radius: 9999px; border-color: var(--foreground); color: var(--foreground); }
+.quick-add button:hover:not(:disabled), .quick-add-choose:hover { background: var(--foreground); color: #fff; }
+.quick-add-message a { color: var(--foreground); }
+.add-to-cart button { border-radius: 9999px; background: var(--primary); }
+.product-info .add-to-cart > button:hover:not(:disabled) { background: var(--shade-70); }
+.add-to-cart .purchase-buttons button { border-radius: 9999px; }
+.add-to-cart .purchase-buttons .buy-now { background: var(--aloe); color: var(--foreground); }
+.add-to-cart .purchase-buttons .buy-now:hover:not(:disabled) { background: #a8f2c3; }
+.add-to-cart .purchase-buttons .add-only { background: var(--primary); color: #fff; }
+.cart-summary button, .checkout-link { border-radius: 9999px; background: var(--primary); }
+.cart-summary button:hover, .checkout-link:hover { background: var(--shade-70); opacity: 1; }
+.search-pop button { background: var(--primary); border-radius: 9999px; }
+.product-browse-bag { background: var(--aloe); color: var(--foreground); border: 0; border-radius: 9999px; }
+.product-browse-bag:hover { background: #a8f2c3; }
+.status-link { border-radius: 9999px; background: var(--primary); }
+.status-link-ghost { background: transparent; color: var(--foreground); border-color: var(--foreground); }
+
+/* Cards + surfaces (soft paper halo) */
+.product-section, .arrivals, .questions, .ideas-section article { background: var(--card); border-radius: 12px; box-shadow: var(--shadow-card); }
+.questions { border: 0; }
+.ideas-lead { background: var(--pistachio); border-radius: 12px; }
+.ideas-lead > svg { color: #1f6b43; }
+.ideas-section article a { color: var(--foreground); }
+
+/* Hero frame */
+.home-hero { background: var(--pistachio); border: 1px solid var(--hairline); border-radius: 20px; }
+.home-hero h1 { color: var(--foreground); }
+.home-hero-copy > p { color: var(--shade-60); }
+
+/* Category grid */
+.category-grid a { background: var(--card); border-color: var(--hairline); border-radius: 12px; }
+.category-grid a:hover { border-color: var(--foreground); color: var(--foreground); }
+.category-grid a[aria-current] { background: var(--aloe); border-color: var(--foreground); color: var(--foreground); }
+.category-thumb { border-radius: 8px; }
+
+/* Filters */
+.category-chips a[aria-current] { background: var(--primary); border-color: var(--primary); color: #fff; }
+.sort-select select { border-color: var(--hairline); border-radius: 8px; color: var(--foreground); }
+.sort-select select:focus-visible { outline-color: var(--foreground); }
+
+/* Prices + ink accents (were green) */
+.product-price, .detail-price, .product-info .detail-price, .line-total, .cart-summary dd, .zone-option b, .related-product p { color: var(--foreground); }
+.breadcrumb [aria-current] { color: var(--foreground); }
+.cart-icon b { background: var(--primary); color: #fff; }
+
+/* Badges: success → aloe; keep warm low/out for clarity */
+.stock-in { background: var(--aloe); color: #0b3b22; }
+
+/* Variant picker */
+.variant-picker a[aria-current], .product-info .variant-picker a[aria-current] { background: var(--aloe); border-color: var(--foreground); color: var(--foreground); }
+.single-variant { background: var(--muted); }
+
+/* Inputs */
+.checkout-field input, .checkout-field textarea, .search-pop input { border-radius: 8px; border-color: var(--hairline); }
+.checkout-field input:focus, .checkout-field textarea:focus { outline: 2px solid var(--foreground); border-color: var(--foreground); }
+.zone-option { border-color: var(--hairline); }
+.zone-option:has(input:checked) { border-color: var(--foreground); background: var(--aloe); }
+.zone-option input, .checkout-field .gift-toggle input { accent-color: var(--foreground); }
+.gift-toggle { border-color: var(--shade-40); background: var(--card); }
+.gift-toggle:has(input:checked) { border-color: var(--foreground); background: var(--aloe); }
+.gift-toggle b, .confirm-gift { color: var(--foreground); }
+.confirm-gift { background: var(--pistachio); }
+.payment-method { border-color: var(--shade-40); }
+.order-number { background: var(--pistachio); }
+
+/* Footer → light */
+.store-footer { background: var(--card); border-top: 1px solid var(--hairline); }
+.footer-columns p, .footer-columns a { color: var(--shade-60); }
+.footer-signature { color: var(--foreground); }
+.footer-message svg { color: var(--foreground); }
+.footer-bottom { color: var(--shade-50); border-top-color: var(--hairline); }
+
+/* New-arrivals scrollbar in ink/mint */
+.arrivals-row { scrollbar-color: var(--foreground) var(--muted); }
+.arrivals-row::-webkit-scrollbar-track { background: var(--muted); }
+.arrivals-row::-webkit-scrollbar-thumb { background: var(--foreground); }
+.arrivals-row span { color: var(--foreground); }
