@@ -538,104 +538,122 @@ a:focus-visible, summary:focus-visible, [tabindex="0"]:focus-visible { outline: 
 .category-cta { margin-top: 20px; text-align: center; }
 
 /* ============================================================
-   Shopifi-inspired light/cream theme (single transactional track)
-   Black ink + pill buttons + aloe/pistachio accents + hairlines.
+   Airbnb-inspired white-blue theme (single blue voltage)
+   White/soft-blue canvas, ink #222, soft radii, one shadow tier.
    ============================================================ */
 
 /* Canvas */
-.shop-background { background: var(--canvas-cream); background-image: none; }
-.product-page { background: var(--canvas-cream); }
+.shop-background, .product-page { background: var(--surface-soft); background-image: none; }
 
-/* Type: lighter display headings, Inter for Latin via body stack */
-.home-hero h1 { font-weight: 450; letter-spacing: 0; }
-.section-title h2, .products-head h2, .ideas-lead h2, .category-section .section-title h2 { font-weight: 500; }
-.section-title > span { color: var(--shade-40); }
-.dotted-rule { border-color: var(--hairline); }
-a:hover { color: var(--shade-60); }
+/* Type: modest Airbnb display weights */
+.home-hero h1 { font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.home-hero-copy > p { color: var(--body-text); }
+.section-title h2, .products-head h2, .ideas-lead h2, .category-section .section-title h2 { font-weight: 600; }
+.section-title > span { color: var(--muted-ink); }
+.dotted-rule { border-color: var(--hairline-soft); }
+a:hover { color: var(--blue-active); }
 
 /* Announcement + nav */
-.announce-bar { background: var(--primary); color: #fff; letter-spacing: .02em; }
-.cp-nav a { color: var(--foreground); }
-.cp-nav a::after, .cp-nav a[aria-current]::after { background: var(--foreground); }
+.announce-bar { background: var(--blue); color: #fff; letter-spacing: .01em; }
+.cp-nav a { color: var(--ink); }
+.cp-nav a::after, .cp-nav a[aria-current]::after { background: var(--blue); }
 
-/* Buttons → pill vocabulary */
-.btn-primary { border-radius: 9999px; background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--shade-70); color: #fff; }
-.btn-link { color: var(--foreground); border-bottom-color: var(--foreground); }
-.quick-add button, .quick-add-choose { border-radius: 9999px; border-color: var(--foreground); color: var(--foreground); }
-.quick-add button:hover:not(:disabled), .quick-add-choose:hover { background: var(--foreground); color: #fff; }
-.quick-add-message a { color: var(--foreground); }
-.add-to-cart button { border-radius: 9999px; background: var(--primary); }
-.product-info .add-to-cart > button:hover:not(:disabled) { background: var(--shade-70); }
-.add-to-cart .purchase-buttons button { border-radius: 9999px; }
-.add-to-cart .purchase-buttons .buy-now { background: var(--aloe); color: var(--foreground); }
-.add-to-cart .purchase-buttons .buy-now:hover:not(:disabled) { background: #a8f2c3; }
-.add-to-cart .purchase-buttons .add-only { background: var(--primary); color: #fff; }
-.cart-summary button, .checkout-link { border-radius: 9999px; background: var(--primary); }
-.cart-summary button:hover, .checkout-link:hover { background: var(--shade-70); opacity: 1; }
-.search-pop button { background: var(--primary); border-radius: 9999px; }
-.product-browse-bag { background: var(--aloe); color: var(--foreground); border: 0; border-radius: 9999px; }
-.product-browse-bag:hover { background: #a8f2c3; }
-.status-link { border-radius: 9999px; background: var(--primary); }
-.status-link-ghost { background: transparent; color: var(--foreground); border-color: var(--foreground); }
+/* Buttons — soft 8px radius, single blue voltage */
+.btn-primary { border-radius: 8px; background: var(--blue); color: #fff; }
+.btn-primary:hover { background: var(--blue-active); color: #fff; }
+.btn-link { color: var(--ink); border-bottom-color: var(--ink); }
+.quick-add button, .quick-add-choose { border-radius: 8px; border-color: var(--ink); color: var(--ink); background: #fff; }
+.quick-add button:hover:not(:disabled), .quick-add-choose:hover { background: var(--surface-strong); color: var(--ink); }
+.quick-add-message a { color: var(--blue); }
+.add-to-cart button { border-radius: 8px; background: var(--blue); }
+.product-info .add-to-cart > button:hover:not(:disabled) { background: var(--blue-active); }
+.add-to-cart .purchase-buttons button { border-radius: 8px; }
+.add-to-cart .purchase-buttons .buy-now { background: var(--blue); color: #fff; }
+.add-to-cart .purchase-buttons .buy-now:hover:not(:disabled) { background: var(--blue-active); }
+.add-to-cart .purchase-buttons .add-only { background: #fff; color: var(--ink); border: 1px solid var(--ink); }
+.add-to-cart .purchase-buttons .add-only:hover:not(:disabled) { background: var(--surface-strong); }
+.cart-summary button, .checkout-link { border-radius: 8px; background: var(--blue); }
+.cart-summary button:hover, .checkout-link:hover { background: var(--blue-active); opacity: 1; }
+.search-pop button { background: var(--blue); border-radius: 9999px; }
+.product-browse-bag { background: var(--blue-soft); color: var(--ink); border: 0; border-radius: 9999px; }
+.product-browse-bag:hover { background: #d9e6fd; }
+.status-link { border-radius: 8px; background: var(--blue); }
+.status-link-ghost { background: #fff; color: var(--ink); border-color: var(--ink); }
 
-/* Cards + surfaces (soft paper halo) */
-.product-section, .arrivals, .questions, .ideas-section article { background: var(--card); border-radius: 12px; box-shadow: var(--shadow-card); }
-.questions { border: 0; }
-.ideas-lead { background: var(--pistachio); border-radius: 12px; }
-.ideas-lead > svg { color: #1f6b43; }
-.ideas-section article a { color: var(--foreground); }
+/* Cards & surfaces — flat white + hairline (Airbnb has one hover shadow, not stacked halos) */
+.product-section, .arrivals, .questions, .ideas-section article { background: var(--card); border: 1px solid var(--hairline); border-radius: 14px; box-shadow: none; }
+.ideas-lead { background: var(--blue-soft); border: 0; border-radius: 14px; }
+.ideas-lead > svg { color: var(--blue); }
+.ideas-section article a { color: var(--blue); }
 
 /* Hero frame */
-.home-hero { background: var(--pistachio); border: 1px solid var(--hairline); border-radius: 20px; }
-.home-hero h1 { color: var(--foreground); }
-.home-hero-copy > p { color: var(--shade-60); }
+.home-hero { background: var(--blue-soft); border: 1px solid var(--hairline); border-radius: 14px; }
 
-/* Category grid */
-.category-grid a { background: var(--card); border-color: var(--hairline); border-radius: 12px; }
-.category-grid a:hover { border-color: var(--foreground); color: var(--foreground); }
-.category-grid a[aria-current] { background: var(--aloe); border-color: var(--foreground); color: var(--foreground); }
-.category-thumb { border-radius: 8px; }
+/* Property-style photos + cards */
+.product-photo, .product-photo-empty { border-radius: 14px; }
+.product-card:hover { box-shadow: var(--shadow-card); border-radius: 14px; }
+
+/* Category tiles */
+.category-grid a { background: var(--card); border-color: var(--hairline); border-radius: 14px; }
+.category-grid a:hover { border-color: var(--ink); color: var(--ink); box-shadow: var(--shadow-card); }
+.category-grid a[aria-current] { background: var(--blue-soft); border-color: var(--blue); color: var(--ink); }
+.category-thumb { border-radius: 10px; }
 
 /* Filters */
-.category-chips a[aria-current] { background: var(--primary); border-color: var(--primary); color: #fff; }
-.sort-select select { border-color: var(--hairline); border-radius: 8px; color: var(--foreground); }
-.sort-select select:focus-visible { outline-color: var(--foreground); }
+.category-chips a[aria-current] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.sort-select select { border-color: var(--hairline); border-radius: 8px; color: var(--ink); }
+.sort-select select:focus-visible { outline-color: var(--blue); }
 
-/* Prices + ink accents (were green) */
-.product-price, .detail-price, .product-info .detail-price, .line-total, .cart-summary dd, .zone-option b, .related-product p { color: var(--foreground); }
-.breadcrumb [aria-current] { color: var(--foreground); }
-.cart-icon b { background: var(--primary); color: #fff; }
+/* Prices + ink accents */
+.product-price, .detail-price, .product-info .detail-price, .line-total, .cart-summary dd, .zone-option b, .related-product p { color: var(--ink); }
+.breadcrumb [aria-current] { color: var(--ink); }
+.cart-icon b { background: var(--blue); color: #fff; }
 
-/* Badges: success → aloe; keep warm low/out for clarity */
-.stock-in { background: var(--aloe); color: #0b3b22; }
+/* Badges: in-stock → blue tint; keep warm low/out for clarity */
+.stock-in { background: var(--blue-soft); color: #1d3a8a; }
 
 /* Variant picker */
-.variant-picker a[aria-current], .product-info .variant-picker a[aria-current] { background: var(--aloe); border-color: var(--foreground); color: var(--foreground); }
-.single-variant { background: var(--muted); }
+.variant-picker a[aria-current], .product-info .variant-picker a[aria-current] { background: var(--blue-soft); border-color: var(--blue); color: var(--ink); }
+.single-variant { background: var(--surface-strong); }
 
-/* Inputs */
+/* Inputs — hairline, 8px, focus thickens to ink */
 .checkout-field input, .checkout-field textarea, .search-pop input { border-radius: 8px; border-color: var(--hairline); }
-.checkout-field input:focus, .checkout-field textarea:focus { outline: 2px solid var(--foreground); border-color: var(--foreground); }
+.checkout-field input:focus, .checkout-field textarea:focus { outline: 2px solid var(--ink); border-color: var(--ink); }
 .zone-option { border-color: var(--hairline); }
-.zone-option:has(input:checked) { border-color: var(--foreground); background: var(--aloe); }
-.zone-option input, .checkout-field .gift-toggle input { accent-color: var(--foreground); }
-.gift-toggle { border-color: var(--shade-40); background: var(--card); }
-.gift-toggle:has(input:checked) { border-color: var(--foreground); background: var(--aloe); }
-.gift-toggle b, .confirm-gift { color: var(--foreground); }
-.confirm-gift { background: var(--pistachio); }
-.payment-method { border-color: var(--shade-40); }
-.order-number { background: var(--pistachio); }
+.zone-option:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
+.zone-option input, .checkout-field .gift-toggle input { accent-color: var(--blue); }
+.gift-toggle { border-color: var(--hairline); background: var(--card); }
+.gift-toggle:has(input:checked) { border-color: var(--blue); background: var(--blue-soft); }
+.gift-toggle b, .confirm-gift { color: var(--ink); }
+.confirm-gift { background: var(--blue-soft); }
+.payment-method { border-color: var(--hairline); }
+.order-number { background: var(--blue-soft); }
 
-/* Footer → light */
+/* Footer → white */
 .store-footer { background: var(--card); border-top: 1px solid var(--hairline); }
-.footer-columns p, .footer-columns a { color: var(--shade-60); }
-.footer-signature { color: var(--foreground); }
-.footer-message svg { color: var(--foreground); }
-.footer-bottom { color: var(--shade-50); border-top-color: var(--hairline); }
+.footer-columns p, .footer-columns a { color: var(--muted-ink); }
+.footer-signature { color: var(--ink); }
+.footer-message svg { color: var(--blue); }
+.footer-bottom { color: var(--muted-ink); border-top-color: var(--hairline); }
 
-/* New-arrivals scrollbar in ink/mint */
-.arrivals-row { scrollbar-color: var(--foreground) var(--muted); }
-.arrivals-row::-webkit-scrollbar-track { background: var(--muted); }
-.arrivals-row::-webkit-scrollbar-thumb { background: var(--foreground); }
-.arrivals-row span { color: var(--foreground); }
+/* New-arrivals scrollbar */
+.arrivals-row { scrollbar-color: var(--blue) var(--surface-strong); }
+.arrivals-row::-webkit-scrollbar-track { background: var(--surface-strong); }
+.arrivals-row::-webkit-scrollbar-thumb { background: var(--blue); }
+.arrivals-row span { color: var(--ink); }
+
+/* Product-detail leftovers → white-blue */
+.related-product { background: var(--blue-soft); }
+.gallery-arrow:hover { background: var(--blue-soft); }
+.product-gallery .gallery-thumbs button[aria-current], .gallery-thumbs button[aria-current] { border-color: var(--blue); background: var(--blue-soft); }
+.product-info > .product-category { color: var(--muted-ink); }
+.product-intro, .product-description p, .product-info .product-description p { color: var(--body-text); }
+.product-service-notes { color: var(--body-text); }
+.product-disclosure { border-color: var(--hairline); }
+.cp-main summary:hover, .cp-bag:hover { background: var(--surface-strong); }
+.cp-nav { border-bottom-color: var(--hairline); border-top-color: var(--hairline); }
+.store-header, .cp-nav { border-color: var(--hairline); }
+.delivery-zones { border-color: var(--hairline); background: #fff; }
+.delivery-zones li { border-top-color: var(--hairline-soft); }
+.cart-message-success { color: var(--blue); }
+.product-card summary { border-top-color: var(--hairline-soft); }

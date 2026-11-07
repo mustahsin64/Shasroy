@@ -1,35 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  /* Shopifi-inspired light/cream track */
-  --background: #fbfbf5;   /* canvas-cream */
-  --foreground: #000000;   /* ink */
-  --card: #ffffff;         /* canvas-light */
-  --card-foreground: #000000;
-  --primary: #000000;      /* black pill / ink */
+  /* Airbnb-inspired white-blue track: white/soft-blue canvas, ink #222, single blue voltage */
+  --background: #f6f9ff;    /* faint blue-white page floor */
+  --foreground: #222222;    /* ink */
+  --card: #ffffff;          /* card / canvas */
+  --card-foreground: #222222;
+  --primary: #2563eb;       /* blue — the single accent (CTA, orb, save, links) */
   --primary-foreground: #ffffff;
-  --secondary: #d4f9e0;    /* pistachio-10 */
-  --secondary-foreground: #000000;
-  --muted: #f4f4f3;
-  --muted-foreground: #52525b; /* shade-60 */
-  --accent: #c1fbd4;       /* aloe-10 */
-  --accent-foreground: #000000;
-  --border: #e4e4e7;       /* hairline-light */
-  --ring: #000000;
+  --secondary: #eff5ff;     /* blue-50 fill */
+  --secondary-foreground: #1d3a8a;
+  --muted: #f2f5fb;
+  --muted-foreground: #6a6a6a;
+  --accent: #e8f0fe;        /* light blue tint fill */
+  --accent-foreground: #1d3a8a;
+  --border: #dddddd;        /* hairline */
+  --ring: #2563eb;
   /* Named design tokens */
-  --aloe: #c1fbd4;
-  --pistachio: #d4f9e0;
-  --shade-30: #d4d4d8;
-  --shade-40: #a1a1aa;
-  --shade-50: #71717a;
-  --shade-60: #52525b;
-  --shade-70: #3f3f46;
-  --hairline: #e4e4e7;
-  --canvas-cream: #fbfbf5;
-  --canvas-light: #ffffff;
-  --radius: 0.75rem; /* cards 12px */
-  /* Stacked soft halo for light-track cards (elevation level 3) */
-  --shadow-card: 0 8px 8px rgba(0,0,0,0.06), 0 4px 4px rgba(0,0,0,0.06), 0 2px 2px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.05);
+  --blue: #2563eb;
+  --blue-active: #1d4ed8;
+  --blue-soft: #e8f0fe;
+  --blue-tint: #eff5ff;
+  --ink: #222222;
+  --body-text: #3f3f3f;
+  --muted-ink: #6a6a6a;
+  --muted-soft: #929292;
+  --hairline: #dddddd;
+  --hairline-soft: #ebebeb;
+  --surface-soft: #f6f9ff;
+  --surface-strong: #eef2fb;
+  --canvas: #ffffff;
+  --radius: 0.875rem; /* cards 14px */
+  /* Airbnb's single elevation tier (hover float + dropdowns) */
+  --shadow-card: rgba(0,0,0,0.02) 0 0 0 1px, rgba(0,0,0,0.04) 0 2px 6px 0, rgba(0,0,0,0.1) 0 4px 8px 0;
   --font-ui: "Inter Variable", "Noto Serif Bengali Variable", "Noto Serif Bengali", Helvetica, Arial, sans-serif;
   --font-bn: "Noto Serif Bengali Variable", "Noto Serif Bengali", serif;
 }
@@ -69,8 +72,7 @@ html {
 body {
   /* Latin/numerals render in Inter; Bangla glyphs fall through to the Bengali serif. */
   font-family: var(--font-ui);
-  font-feature-settings: "ss03";
-  background: var(--canvas-cream);
+  background: var(--background);
   color: var(--foreground);
 }
 
