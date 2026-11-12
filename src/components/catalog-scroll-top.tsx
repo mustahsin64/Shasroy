@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
  *  instead of the browser smooth-scrolling to the results anchor after the layout swaps. */
 export function CatalogScrollTop() {
   const params = useSearchParams();
-  const key = `${params.get("q") ?? ""}|${params.get("category") ?? ""}|${params.get("sort") ?? ""}`;
+  const key = `${params.get("q") ?? ""}|${params.get("category") ?? ""}|${params.get("max") ?? ""}|${params.get("sort") ?? ""}`;
   useEffect(() => {
     // Leave genuine in-page anchor jumps (header nav, hero buttons) alone.
     if (window.location.hash) return;

@@ -7,10 +7,10 @@ import type { getShopSettings } from "@/lib/shop-settings";
 type Zones = Awaited<ReturnType<typeof listDeliveryZones>>;
 type Settings = Awaited<ReturnType<typeof getShopSettings>>;
 
-/** Pre-purchase questions; shown on the landing page and the products page. */
+/** Pre-purchase questions, on the /faq page. */
 export function ShopFaq({ zones, settings }: { zones: Zones; settings: Settings }) {
   return (
-    <section id="questions" className="questions"><h2>কেনাকাটার আগে</h2>
+    <section id="questions" className="questions"><h1>সাধারণ প্রশ্ন</h1><p className="questions-lead">কেনাকাটার আগে যা জানতে চান।</p>
       <details><summary>কীভাবে অর্ডার করব?</summary><p>পণ্য বেছে “এখনই কিনুন” বা “ব্যাগে যোগ” চাপুন। চেকআউটে নাম, মোবাইল নম্বর ও ঠিকানা দিন। ডেলিভারির আগে ওই নম্বরে ফোন করে অর্ডার নিশ্চিত করা হবে।</p></details>
       {zones.length > 0 && <details><summary>ডেলিভারিতে কত দিন লাগে, খরচ কত?</summary><ul className="faq-zones">{zones.map(zone => <li key={zone.id}>{zone.nameBn}: {formatTaka(zone.feePaisa)}, {formatDeliveryDays(zone.minDays, zone.maxDays)}</li>)}</ul></details>}
       <details><summary>টাকা কীভাবে দেব?</summary><p>ক্যাশ অন ডেলিভারি: পণ্য হাতে পেয়ে টাকা দিন। অর্ডার করতে অগ্রিম টাকা লাগে না।</p></details>

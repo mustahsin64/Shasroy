@@ -1,40 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  /* Airbnb-inspired white-blue track: white/soft-blue canvas, ink #222, single blue voltage */
-  --background: #f6f9ff;    /* faint blue-white page floor */
-  --foreground: #222222;    /* ink */
-  --card: #ffffff;          /* card / canvas */
-  --card-foreground: #222222;
-  --primary: #2563eb;       /* blue — the single accent (CTA, orb, save, links) */
-  --primary-foreground: #ffffff;
-  --secondary: #eff5ff;     /* blue-50 fill */
-  --secondary-foreground: #1d3a8a;
-  --muted: #f2f5fb;
-  --muted-foreground: #6a6a6a;
-  --accent: #e8f0fe;        /* light blue tint fill */
-  --accent-foreground: #1d3a8a;
-  --border: #dddddd;        /* hairline */
-  --ring: #2563eb;
-  /* Named design tokens */
-  --blue: #2563eb;
-  --blue-active: #1d4ed8;
-  --blue-soft: #e8f0fe;
-  --blue-tint: #eff5ff;
-  --ink: #222222;
-  --body-text: #3f3f3f;
-  --muted-ink: #6a6a6a;
-  --muted-soft: #929292;
-  --hairline: #dddddd;
-  --hairline-soft: #ebebeb;
-  --surface-soft: #f6f9ff;
-  --surface-strong: #eef2fb;
+  /* Shasroy gift-shop palette, taken from the logo: leaf green + marigold on warm ivory. */
+  --leaf: #1f7a3a;          /* primary actions, links */
+  --leaf-dark: #17602d;     /* hover / pressed */
+  --forest: #133f27;        /* headings, top bar, footer */
+  --gold: #e3a82b;          /* accent: badges, price bands, focus of attention */
+  --gold-soft: #fbf0d4;
+  --gold-ink: #6c4807;      /* text on gold-soft */
+  --ivory: #fbf8f1;         /* page floor */
+  --mint: #e9f2ea;          /* alternate bands */
+  --coral: #d4493a;         /* urgency only: low stock, sale */
+  --ink: #1d2a22;
+  --body-text: #3a463e;
+  --muted-ink: #5f6b62;
+  --hairline: #e8e2d4;
+  --hairline-soft: #f0ebe0;
   --canvas: #ffffff;
-  --radius: 0.875rem; /* cards 14px */
-  /* Airbnb's single elevation tier (hover float + dropdowns) */
-  --shadow-card: rgba(0,0,0,0.02) 0 0 0 1px, rgba(0,0,0,0.04) 0 2px 6px 0, rgba(0,0,0,0.1) 0 4px 8px 0;
-  --font-ui: "Inter Variable", "Noto Serif Bengali Variable", "Noto Serif Bengali", Helvetica, Arial, sans-serif;
-  --font-bn: "Noto Serif Bengali Variable", "Noto Serif Bengali", serif;
+
+  --background: var(--ivory);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --primary: var(--leaf);
+  --primary-foreground: #ffffff;
+  --secondary: var(--mint);
+  --secondary-foreground: var(--forest);
+  --muted: #f3efe6;
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--gold-soft);
+  --accent-foreground: var(--gold-ink);
+  --border: var(--hairline);
+  --ring: var(--leaf);
+  --brand-leaf: var(--leaf);
+  --brand-deep: var(--forest);
+  --brand-gold: var(--gold);
+  --radius: 0.875rem;
+  --shadow-card: 0 1px 2px rgba(19, 63, 39, .06), 0 8px 24px -12px rgba(19, 63, 39, .22);
+  /* Hind Siliguri for UI and body text (Bangla + Latin); the serif is for display headlines only. */
+  --font-ui: "Hind Siliguri", "Inter Variable", system-ui, sans-serif;
+  --font-bn: "Hind Siliguri", "Inter Variable", system-ui, sans-serif;
+  --font-display: "Noto Serif Bengali Variable", "Noto Serif Bengali", "Hind Siliguri", serif;
 }
 
 @theme inline {

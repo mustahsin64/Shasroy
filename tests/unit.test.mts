@@ -12,6 +12,9 @@ const { deliveryZoneInputSchema, deliveryZoneUpdateSchema, normalizeBdPhone } = 
 const { buildOrderSearch, collectionState } = await import("@/lib/admin/orders");
 const { noteBodySchema } = await import("@/lib/admin/order-notes");
 const { hasRole } = await import("@/lib/roles");
+const { classifyWeather, seasonalWeather, dhakaMonthHour, localMonthHour } = await import("@/lib/weather");
+const { formatBanglaClock } = await import("@/lib/bangla-clock");
+const { locationFromHeaders, FALLBACK_LOCATION } = await import("@/lib/visitor-location");
 
 describe("takaStringToPaisa", () => {
   it("is exact, with no float rounding", () => {
@@ -109,5 +112,77 @@ describe("role ranking", () => {
     assert.equal(hasRole(admin("manager"), "manager"), true);
     assert.equal(hasRole(admin("manager"), "owner"), false);
     assert.equal(hasRole(admin("owner"), "staff"), true);
+  });
+});
+
+describe("weather classification", () => {
+  const base = { temperatureC: 28, apparentC: 30, weatherCode: 1, precipitationMm: 0, month: 11 };
+  it("rain wins over everything else", () => {
+    assert.equal(classifyWeather({ ...base, weatherCode: 63 }), "rain");
+    assert.equal(classifyWeather({ ...base, temperatureC: 36, weatherCode: 95 }), "rain");
+    assert.equal(classifyWeather({ ...base, precipitationMm: 0.4 }), "rain");
+  });
+  it("hot on the reading or a humid feels-like", () => {
+    assert.equal(classifyWeather({ ...base, temperatureC: 34 }), "hot");
+    assert.equal(classifyWeather({ ...base, temperatureC: 31, apparentC: 37 }), "hot");
+  });
+  it("winter when cold, or cool in Dec-Feb, or foggy and cool", () => {
+    assert.equal(classifyWeather({ ...base, temperatureC: 16 }), "winter");
+    assert.equal(classifyWeather({ ...base, temperatureC: 23, month: 1 }), "winter");
+    assert.equal(classifyWeather({ ...base, temperatureC: 23, weatherCode: 45 }), "winter");
+  });
+  it("normal otherwise", () => {
+    assert.equal(classifyWeather(base), "normal");
+    assert.equal(classifyWeather({ ...base, temperatureC: 23, month: 11 }), "normal");
+  });
+  it("falls back to Bangladesh seasons", () => {
+    assert.deepEqual([1, 4, 7, 10, 12].map(seasonalWeather), ["winter", "hot", "rain", "normal", "winter"]);
+  });
+  it("reads month and hour in Bangladesh time (UTC+6)", () => {
+    // 2026-12-31 20:30 UTC is 2027-01-01 02:30 in Dhaka.
+    assert.deepEqual(dhakaMonthHour(Date.UTC(2026, 11, 31, 20, 30)), { month: 1, hour: 2 });
+  });
+  it("reads month and hour in the visitor's zone, Bangladesh when unknown", () => {
+    const ms = Date.UTC(2026, 6, 1, 12, 0);
+    assert.deepEqual(localMonthHour(ms, "Europe/London"), { month: 7, hour: 13 });
+    assert.deepEqual(localMonthHour(ms, null), { month: 7, hour: 18 });
+    assert.deepEqual(localMonthHour(ms, "Not/AZone"), { month: 7, hour: 18 });
+  });
+});
+
+describe("visitor location", () => {
+  const h = (entries: Record<string, string>) => new Headers(entries);
+  it("falls back to Dhaka without geolocation headers", () => {
+    assert.deepEqual(locationFromHeaders(h({})), FALLBACK_LOCATION);
+    assert.deepEqual(locationFromHeaders(h({ "x-vercel-ip-latitude": "abc", "x-vercel-ip-longitude": "90" })), FALLBACK_LOCATION);
+    assert.deepEqual(locationFromHeaders(h({ "x-vercel-ip-latitude": "95", "x-vercel-ip-longitude": "90" })), FALLBACK_LOCATION);
+  });
+  it("rounds coordinates and names Bangladesh cities in Bangla", () => {
+    const loc = locationFromHeaders(h({ "x-vercel-ip-latitude": "22.3569", "x-vercel-ip-longitude": "91.7832", "x-vercel-ip-city": "Chittagong", "x-vercel-ip-timezone": "Asia/Dhaka" }));
+    assert.deepEqual(loc, { latitude: 22.4, longitude: 91.8, cityName: "চট্টগ্রাম", timeZone: "Asia/Dhaka", isFallback: false });
+  });
+  it("keeps other city names as sent and drops a malformed zone", () => {
+    const loc = locationFromHeaders(h({ "x-vercel-ip-latitude": "51.5", "x-vercel-ip-longitude": "-0.12", "x-vercel-ip-city": "S%C3%A3o%20Paulo", "x-vercel-ip-timezone": "<x>" }));
+    assert.equal(loc.cityName, "São Paulo");
+    assert.equal(loc.timeZone, null);
+    assert.equal(locationFromHeaders(h({ "x-vercel-ip-latitude": "51.5", "x-vercel-ip-longitude": "-0.12" })).cityName, "আপনার এলাকা");
+  });
+});
+
+describe("Bangla clock", () => {
+  const at = (h: number, m: number) => Date.UTC(2026, 10, 12, h, m) - 6 * 3_600_000; // Dhaka wall time
+  it("uses the Bangla time of day, 12-hour Bangla digits and a padded minute", () => {
+    assert.equal(formatBanglaClock(at(16, 25)), "বিকেল ৪:২৫");
+    assert.equal(formatBanglaClock(at(9, 5)), "সকাল ৯:০৫");
+    assert.equal(formatBanglaClock(at(12, 0)), "দুপুর ১২:০০");
+    assert.equal(formatBanglaClock(at(0, 30)), "রাত ১২:৩০");
+    assert.equal(formatBanglaClock(at(5, 10)), "ভোর ৫:১০");
+    assert.equal(formatBanglaClock(at(18, 45)), "সন্ধ্যা ৬:৪৫");
+    assert.equal(formatBanglaClock(at(21, 0)), "রাত ৯:০০");
+  });
+  it("shows another zone's wall time from its UTC offset", () => {
+    // 16:25 in Dhaka is 10:25 UTC and 15:55 in Kolkata (+330).
+    assert.equal(formatBanglaClock(at(16, 25), 0), "সকাল ১০:২৫");
+    assert.equal(formatBanglaClock(at(16, 25), 330), "বিকেল ৩:৫৫");
   });
 });

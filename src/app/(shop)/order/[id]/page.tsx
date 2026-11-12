@@ -47,7 +47,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
         </section>
       </div>
       {shopContact.hasAny && <section className="confirm-contact"><h2>কোনো প্রশ্ন থাকলে</h2><p>অর্ডার নম্বর <strong>{order.orderNumber}</strong> জানিয়ে যোগাযোগ করুন।</p><ContactLinks /></section>}
-      <Link href="/#products" className="continue-link">আরও কেনাকাটা করুন</Link>
+      <Link href="/products" className="continue-link">আরও কেনাকাটা করুন</Link>
     </div>
   </div></div>;
 }

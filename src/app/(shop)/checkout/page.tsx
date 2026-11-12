@@ -16,12 +16,12 @@ export default async function CheckoutPage() {
 
   return <div className="shop-background"><div className="container-shell">
     <div className="cart-page">
-      <div className="section-title"><span>✧</span><h1>অর্ডার করুন</h1><div className="dotted-rule" /></div>
+      <div className="section-title"><h1>অর্ডার করুন</h1></div>
 
       {blocked ? <div className="cart-empty">
         <ShoppingBag size={48} strokeWidth={1} />
         {cart.lines.length === 0
-          ? <><p>আপনার ব্যাগ খালি।</p><Link href="/#products">পণ্য দেখুন</Link></>
+          ? <><p>আপনার ব্যাগ খালি।</p><Link href="/products">পণ্য দেখুন</Link></>
           : noZones
           ? <><p>এই মুহূর্তে অর্ডার নেওয়া বন্ধ আছে (ডেলিভারি এলাকা চালু নেই)। একটু পরে আবার চেষ্টা করুন।</p><Link href="/cart">ব্যাগে ফিরে যান</Link></>
           : <><p>ব্যাগের কিছু পণ্যে সমস্যা আছে। আগে ঠিক করে নিন।</p><Link href="/cart">ব্যাগে ফিরে যান</Link></>}

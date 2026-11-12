@@ -19,12 +19,12 @@ export default async function CartPage() {
 
   return <div className="shop-background"><div className="container-shell">
     <div className="cart-page">
-      <div className="section-title"><span>✧</span><h1>আমার ব্যাগ</h1><div className="dotted-rule" /></div>
+      <div className="section-title"><h1>আমার ব্যাগ</h1></div>
 
       {cart.lines.length === 0 ? <div className="cart-empty">
         <ShoppingBag size={48} strokeWidth={1} />
         <p>আপনার ব্যাগ এখনো খালি।</p>
-        <Link href="/#products">পণ্য দেখুন</Link>
+        <Link href="/products">পণ্য দেখুন</Link>
       </div> : <div className="cart-layout">
         <ul className="cart-lines">
           {cart.lines.map(line => {
@@ -63,7 +63,7 @@ export default async function CartPage() {
           <p className="summary-note">দাম ও স্টক অর্ডার করার সময় আবার যাচাই করা হবে।</p>
           {cart.hasIssues && <p className="line-issue">কিছু পণ্যে সমস্যা আছে; ঠিক করে নিন।</p>}
           {cart.hasIssues ? <button type="button" disabled>অর্ডার করুন</button> : <Link href="/checkout" className="checkout-link">অর্ডার করুন</Link>}
-          <Link href="/#products" className="continue-link">আরও কেনাকাটা করুন</Link>
+          <Link href="/products" className="continue-link">আরও কেনাকাটা করুন</Link>
         </aside>
       </div>}
     </div>

@@ -10,9 +10,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entries: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), lastModified: now, changeFrequency: "daily", priority: 1 },
+    { url: absoluteUrl("/products"), lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: absoluteUrl("/faq"), lastModified: now, changeFrequency: "monthly", priority: 0.4 },
   ];
   for (const category of categories) {
-    entries.push({ url: absoluteUrl(`/?category=${category.slug}`), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
+    entries.push({ url: absoluteUrl(`/products?category=${category.slug}`), lastModified: now, changeFrequency: "weekly", priority: 0.7 });
   }
   for (const product of products) {
     entries.push({ url: absoluteUrl(`/products/${product.slug}`), lastModified: now, changeFrequency: "weekly", priority: 0.8 });

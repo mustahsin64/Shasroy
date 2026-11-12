@@ -1,15 +1,16 @@
-import { ChevronRight, Banknote, PackageCheck, ArrowUpRight, Truck } from "lucide-react";
+import { ChevronRight, Banknote, Gift, PackageCheck, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToCartForm } from "@/components/add-to-cart-form";
 import { ProductGallery } from "@/components/product-gallery";
-import { ProductImage } from "@/components/product-card";
+import { ProductCard } from "@/components/product-card";
 import { JsonLd } from "@/components/json-ld";
 import { MAX_QUANTITY_PER_LINE } from "@/lib/cart";
 import { getProductBySlug, listProducts } from "@/lib/catalog";
 import { listDeliveryZones } from "@/lib/checkout";
 import { formatDeliveryDays, formatTaka, stockLabel } from "@/lib/format";
+import { getShopSettings } from "@/lib/shop-settings";
 import { absoluteUrl } from "@/lib/site";
 import { productImageUrl } from "@/lib/storage";
 
@@ -45,8 +46,8 @@ export default async function ProductPage({ params, searchParams }: Props) {
     product.variants[0];
   const stock = stockLabel(variant.stockQuantity);
   const variantImageIndex = product.images.findIndex(image => image.variantId === variant.id);
-  const [relatedAll, zones] = await Promise.all([listProducts({ categorySlug: product.category.slug }), listDeliveryZones()]);
-  const related = relatedAll.filter(item => item.id !== product.id).slice(0, 2);
+  const [relatedAll, zones, settings] = await Promise.all([listProducts({ categorySlug: product.category.slug }), listDeliveryZones(), getShopSettings()]);
+  const related = relatedAll.filter(item => item.id !== product.id).slice(0, 4);
 
   const prices = product.variants.map(v => v.pricePaisa);
   const productLd = {
@@ -70,7 +71,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
   return <div className="shop-background product-page"><div className="container-shell"><JsonLd data={productLd} />
     <nav className="breadcrumb" aria-label="অবস্থান">
       <Link href="/">শুরুর পাতা</Link><ChevronRight size={13} />
-      <Link href={`/?category=${product.category.slug}#products`}>{product.category.nameBn}</Link><ChevronRight size={13} />
+      <Link href={`/products?category=${product.category.slug}`}>{product.category.nameBn}</Link><ChevronRight size={13} />
       <span aria-current="page">{product.nameBn}</span>
     </nav>
     <div className="product-detail">
@@ -93,18 +94,10 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
         {product.variants.length === 1 && <p className="single-variant">{variant.nameBn}</p>}
 
-        <AddToCartForm key={variant.id} variantId={variant.id} maxQuantity={Math.min(variant.stockQuantity, MAX_QUANTITY_PER_LINE)} />
+        <AddToCartForm key={variant.id} variantId={variant.id} maxQuantity={Math.min(variant.stockQuantity, MAX_QUANTITY_PER_LINE)} priceLabel={formatTaka(variant.pricePaisa)} />
         <p className="purchase-hint">ক্যাশ অন ডেলিভারি · পণ্য হাতে পেয়ে টাকা দিন।</p>
-        <Link className="product-browse-bag" href="/cart">শপিং ব্যাগ দেখুন <ArrowUpRight size={18} /></Link>
+        {settings.giftWrapEnabled && <p className="gift-note"><Gift size={20} strokeWidth={1.7} aria-hidden="true" /><span><b>উপহার হিসেবে পাঠাবেন?</b> চেকআউটে “গিফট র‍্যাপ” বেছে নিন ({formatTaka(settings.giftWrapFeePaisa)}), সঙ্গে আপনার লেখা চিরকুট। প্যাকেটে দামের কাগজ থাকে না।</span></p>}
         {product.descriptionBn && <details className="product-disclosure product-description-disclosure"><summary>পণ্যের বিস্তারিত</summary><p>{product.descriptionBn}</p></details>}
-        {related.length > 0 && <section className="product-related" aria-labelledby="related-title">
-          <h2 id="related-title">সঙ্গে আরও দেখতে পারেন</h2>
-          {related.map(item => <Link className="related-product" href={`/products/${item.slug}`} key={item.id}>
-            <ProductImage path={item.imagePath} alt={item.nameBn} sizes="96px" />
-            <div><h3>{item.nameBn}</h3><p>{formatTaka(item.minPricePaisa)}{item.minPricePaisa !== item.maxPricePaisa && " থেকে"}</p></div>
-            <span className="related-arrow"><ArrowUpRight size={22} /></span>
-          </Link>)}
-        </section>}
         <div className="product-service-notes">
           <span><Banknote size={22} /> হাতে পেয়ে টাকা দিন</span>
           <span><PackageCheck size={22} /> দেখে নিয়ে টাকা দিন</span>
@@ -117,5 +110,9 @@ export default async function ProductPage({ params, searchParams }: Props) {
         <p className="sku-line">কোড: {variant.sku}</p>
       </div>
     </div>
+    {related.length > 0 && <section className="product-related" aria-labelledby="related-title">
+      <div className="section-head"><div><h2 id="related-title">সঙ্গে আরও দেখতে পারেন</h2></div><Link href={`/products?category=${product.category.slug}`}>সব দেখুন</Link></div>
+      <div className="product-grid">{related.map(item => <ProductCard key={item.id} product={item} />)}</div>
+    </section>}
   </div></div>;
 }

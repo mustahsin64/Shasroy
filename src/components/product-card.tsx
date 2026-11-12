@@ -1,4 +1,4 @@
-import { Gift } from "lucide-react";
+import { ChevronRight, Gift } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { QuickAddButton } from "@/components/quick-add-button";
@@ -11,19 +11,22 @@ export function ProductImage({ path, alt, sizes, priority }: { path: string | nu
   return <div className="product-photo"><Image src={productImageUrl(path)} alt={alt} fill sizes={sizes} preload={priority} /></div>;
 }
 
+/** Photo-led card: only low or empty stock gets a badge; the round button adds to the bag. */
 export function ProductCard({ product }: { product: ProductSummary }) {
   const stock = stockLabel(product.stockQuantity);
   const price = formatTaka(product.minPricePaisa);
   return <article className="product-card">
     <Link href={`/products/${product.slug}`} className="product-card-link">
-      <ProductImage path={product.imagePath} alt={product.nameBn} sizes="(max-width: 650px) 50vw, (max-width: 1100px) 30vw, 230px" />
+      <ProductImage path={product.imagePath} alt={product.nameBn} sizes="(max-width: 650px) 50vw, (max-width: 1100px) 30vw, 260px" />
+      {stock.tone !== "in" && <span className={`card-badge card-badge-${stock.tone}`}>{stock.text}</span>}
       <p className="product-category">{product.categoryNameBn}</p>
       <h3>{product.nameBn}</h3>
       <p className="product-price">{product.minPricePaisa === product.maxPricePaisa ? price : <>{price} <small>থেকে</small></>}</p>
-      <p className={`stock-badge stock-${stock.tone}`}>{stock.text}</p>
     </Link>
-    {product.stockQuantity > 0 && (product.variantCount === 1
-      ? <QuickAddButton variantId={product.firstVariantId} productName={product.nameBn} />
-      : <Link className="quick-add-choose" href={`/products/${product.slug}`}>ধরন বেছে নিন</Link>)}
+    {product.stockQuantity > 0 && <div className="card-action">
+      {product.variantCount === 1
+        ? <QuickAddButton variantId={product.firstVariantId} productName={product.nameBn} />
+        : <Link className="card-add" href={`/products/${product.slug}`} aria-label={`${product.nameBn}: ধরন বেছে নিন`}><ChevronRight size={20} strokeWidth={2.2} aria-hidden="true" /></Link>}
+    </div>}
   </article>;
 }

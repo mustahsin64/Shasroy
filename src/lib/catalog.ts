@@ -1,14 +1,23 @@
 import "server-only";
-import { and, asc, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, ilike, lte, ne, or, sql, type SQL } from "drizzle-orm";
 import { db, schema } from "@/db";
 
-const { categories, products, productVariants, productImages } = schema;
+const { categories, products, productVariants, productImages, orders, orderItems } = schema;
 
 export const productSorts = ["newest", "price-asc", "price-desc"] as const;
 export type ProductSort = (typeof productSorts)[number];
 
 export function parseSort(value: unknown): ProductSort {
   return productSorts.includes(value as ProductSort) ? (value as ProductSort) : "newest";
+}
+
+/** Budget limits in taka offered as "under ৳X" filters. */
+export const priceBands = [300, 500, 1000] as const;
+export type PriceBand = (typeof priceBands)[number];
+
+export function parsePriceBand(value: unknown): PriceBand | undefined {
+  const n = Number(value);
+  return priceBands.find((band) => band === n);
 }
 
 export async function listCategories() {
@@ -22,7 +31,7 @@ export async function listCategories() {
 export type ProductSummary = Awaited<ReturnType<typeof listProducts>>[number];
 
 /** Active products that have at least one active variant. */
-export async function listProducts(filters: { query?: string; categorySlug?: string; sort?: ProductSort } = {}) {
+export async function listProducts(filters: { query?: string; categorySlug?: string; sort?: ProductSort; maxTaka?: PriceBand } = {}) {
   const minPrice = sql<number>`min(${productVariants.pricePaisa})`.mapWith(Number);
   const maxPrice = sql<number>`max(${productVariants.pricePaisa})`.mapWith(Number);
   const stock = sql<number>`sum(${productVariants.stockQuantity})`.mapWith(Number);
@@ -69,6 +78,7 @@ export async function listProducts(filters: { query?: string; categorySlug?: str
     .innerJoin(productVariants, eq(productVariants.productId, products.id))
     .where(and(...conditions))
     .groupBy(products.id, categories.id)
+    .having(filters.maxTaka ? lte(minPrice, filters.maxTaka * 100) : undefined)
     .orderBy(...order)
     .limit(60);
 }
@@ -103,4 +113,22 @@ export async function getProductBySlug(slug: string) {
   });
   if (!product || !product.category.isActive || product.variants.length === 0) return null;
   return product;
+}
+
+/**
+ * Product ids ranked by units sold in the last `days` days (cancelled orders excluded).
+ * Empty for a new shop; callers fill the rest with the newest products.
+ */
+export async function listBestSellerIds(days = 30, limit = 24): Promise<string[]> {
+  const units = sql<number>`sum(${orderItems.quantity})`.mapWith(Number);
+  const rows = await db
+    .select({ productId: productVariants.productId, units })
+    .from(orderItems)
+    .innerJoin(orders, eq(orders.id, orderItems.orderId))
+    .innerJoin(productVariants, eq(productVariants.id, orderItems.variantId))
+    .where(and(ne(orders.status, "cancelled"), gte(orders.createdAt, sql`now() - make_interval(days => ${days})`)))
+    .groupBy(productVariants.productId)
+    .orderBy(desc(units))
+    .limit(limit);
+  return rows.map((row) => row.productId);
 }

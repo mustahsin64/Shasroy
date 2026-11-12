@@ -6,7 +6,8 @@ import { addToCartAction, type AddToCartState } from "@/app/(shop)/cart/actions"
 
 const initialState: AddToCartState = { status: "idle", message: "" };
 
-export function AddToCartForm({ variantId, maxQuantity }: { variantId: string; maxQuantity: number }) {
+/** Quantity + buy buttons. On phones the buttons and price sit in a bar fixed above the tab bar. */
+export function AddToCartForm({ variantId, maxQuantity, priceLabel }: { variantId: string; maxQuantity: number; priceLabel: string }) {
   const [state, formAction, pending] = useActionState(addToCartAction, initialState);
   const soldOut = maxQuantity <= 0;
   const [quantity, setQuantity] = useState(1);
@@ -21,8 +22,9 @@ export function AddToCartForm({ variantId, maxQuantity }: { variantId: string; m
       </div>
     </div>
     <div className="purchase-buttons">
+      <span className="purchase-bar-price" aria-hidden="true">{priceLabel}</span>
       <button type="submit" name="intent" value="buy" className="buy-now" disabled={soldOut || pending}>{soldOut ? "স্টক শেষ" : "এখনই কিনুন"}</button>
-      <button type="submit" name="intent" value="add" className="add-only" disabled={soldOut || pending}>{pending ? "যোগ হচ্ছে…" : "ব্যাগে যোগ করুন"}</button>
+      <button type="submit" name="intent" value="add" className="add-only" disabled={soldOut || pending}>{pending ? "যোগ হচ্ছে…" : "ব্যাগে যোগ"}</button>
     </div>
     <p role="status" aria-live="polite" className={`cart-message cart-message-${state.status}`}>
       {state.message}{state.status === "success" && <> <Link href="/cart">ব্যাগ দেখুন</Link></>}

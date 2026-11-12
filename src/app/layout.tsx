@@ -7,6 +7,10 @@ import "./globals.css";
 import "./storefront.css";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/noto-serif-bengali";
+import "@fontsource/hind-siliguri/400.css";
+import "@fontsource/hind-siliguri/500.css";
+import "@fontsource/hind-siliguri/600.css";
+import "@fontsource/hind-siliguri/700.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -19,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#214c35",
+  themeColor: "#133f27",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
